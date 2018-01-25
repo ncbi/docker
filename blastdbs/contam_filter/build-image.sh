@@ -17,13 +17,11 @@ wget -nc ftp://ftp.ncbi.nlm.nih.gov/pub/kitts/rrna.gz
 wget -nc ftp://ftp.ncbi.nlm.nih.gov/pub/UniVec/UniVec
 cd ..
 
-USERNAME=slottad
+USERNAME=ncbi
 IMAGE=contamfilter
 VERSION=`cat VERSION`
 
 docker build -t $USERNAME/$IMAGE:$VERSION .
 docker tag $USERNAME/$IMAGE:$VERSION $USERNAME/$IMAGE:latest
 
-
-#docker build -t slottad/contamfilter1809 .
 

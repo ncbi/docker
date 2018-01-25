@@ -1,5 +1,13 @@
-# Set the base image to Ubuntu
-FROM slottad/blast:2.7.1
+FROM ncbi/blast:2.7.1 as etl
+
+USER root
+WORKDIR /tarballs
+
+COPY tarballs /tarballs
+
+RUN for i in *.tar.gz; do tar xvf ${i} -C ${BLASTDB} && rm ${i}; done
+
+FROM ncbi/blast:2.7.1
 
 COPY VERSION .
 
@@ -7,6 +15,6 @@ USER root
 
 WORKDIR ${BLASTDB}
 
-COPY databases /var/db/blast
+COPY --from=etl ${BLASTDB} ${BLASTDB}/.
 
 CMD ["/bin/sh"]

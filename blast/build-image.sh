@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USERNAME=slottad
+USERNAME=ncbi
 IMAGE=blast
 VERSION=`cat VERSION`
 

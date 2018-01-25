@@ -1,9 +1,11 @@
 # Set the base image to Ubuntu
-FROM slottad/blast:2.7.1
+FROM ncbi/blast:2.7.1
 
 COPY VERSION .
 
 USER root
+
+RUN apt-get -y -m update && apt-get install -y gawk
 
 # get and setup blast applications                                
 COPY binaries /usr/bin
@@ -12,13 +14,14 @@ RUN chmod 755 /usr/bin/VSlistTo1HitPerLine.awk && chown root:root /usr/bin/VSlis
 
 WORKDIR ${BLASTDB}
 
-COPY databases /var/db/blast
+COPY databases ${BLASTDB}
 
 RUN gzip -d contam_in_euks.fa.gz \
     && makeblastdb -in contam_in_euks.fa -dbtype nucl \
     && makeblastdb -in contam_in_prok.fa -dbtype nucl \
     && makeblastdb -in contam_in_euks.fa -dbtype nucl \
     && makeblastdb -in adaptors_for_screening_proks.fa -dbtype nucl \
+    && makeblastdb -in adaptors_for_screening_euks.fa -dbtype nucl \
     && gzip -d mito.nt.gz \
     && makeblastdb -in mito.nt -dbtype nucl \
     && gzip -d rrna.gz \
