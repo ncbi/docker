@@ -8,7 +8,6 @@ WORKDIR /root/
 
 RUN apt-get -y -m update && apt-get install -y build-essential wget
 
-#COPY hmmer-3.1b2.tar.gz /root
 RUN wget http://eddylab.org/software/hmmer3/${VERSION}/hmmer-${VERSION}.tar.gz
 RUN tar xvf hmmer-${VERSION}.tar.gz
 
@@ -26,6 +25,7 @@ USER root
 COPY --from=hmmerbuild /hmmer/bin /hmmer/bin
 
 WORKDIR /hmmer/hmmerdb
+ENV HMMERDB=/hmmer/hmmerdb
 ENV PATH="/hmmer/bin:${PATH}"
 
 CMD ["/bin/bash"]

@@ -1,0 +1,9 @@
+FROM ncbi/hmmer:3.1b2
+
+COPY VERSION .
+USER root
+
+WORKDIR ${HMMERDB}
+COPY AMR.LIB ${HMMERDB}
+
+CMD ["/bin/bash"]
