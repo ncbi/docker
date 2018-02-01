@@ -23,15 +23,9 @@ FROM ubuntu:16.04
 COPY VERSION .
 
 USER root
-WORKDIR /root/
-
-#RUN apt-get -y -m update && apt-get install -y libgomp1
-
-RUN mkdir -p /hmmer/bin
 COPY --from=hmmerbuild /hmmer/bin /hmmer/bin
 
 WORKDIR /hmmer/hmmerdb
-#ENV BLASTDB /blast/blastdb
 ENV PATH="/hmmer/bin:${PATH}"
 
 CMD ["/bin/bash"]
