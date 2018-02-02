@@ -1,5 +1,5 @@
 CPP=g++
-CPPFLAGS=-I. -std=c++11 -malign-double -O3
+CPPFLAGS=-I. -std=c++11 -malign-double -fno-math-errno -O3
 DEPS = common.inc common.hpp graph.hpp
 OBJ = amr_report.o graph.o common.o 
 
