@@ -1,5 +1,5 @@
 # Set the base image to Ubuntu
-FROM ncbi/blast:2.7.1
+FROM ncbi/blast:18.02
 
 COPY VERSION .
 

@@ -1,4 +1,4 @@
-FROM ncbi/hmmer:3.1b2
+FROM ncbi/hmmer:18.02
 
 COPY VERSION .
 USER root

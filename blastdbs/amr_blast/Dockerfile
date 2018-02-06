@@ -1,4 +1,4 @@
-FROM ncbi/blast:2.7.1 as etl
+FROM ncbi/blast:18.02 as etl
 
 USER root
 
@@ -6,7 +6,7 @@ WORKDIR ${BLASTDB}
 COPY AMRProt ${BLASTDB}
 RUN makeblastdb -in AMRProt -dbtype prot
 
-FROM ncbi/blast:2.7.1
+FROM ncbi/blast:18.02
 
 COPY VERSION .
 

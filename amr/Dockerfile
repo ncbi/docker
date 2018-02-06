@@ -1,4 +1,4 @@
-FROM ubuntu:16.04 as amrbuild
+FROM ubuntu:17.10 as amrbuild
 
 ARG VERSION
 
@@ -13,7 +13,7 @@ COPY src src
 WORKDIR src
 RUN make
 
-FROM ubuntu:16.04
+FROM ubuntu:17.10
 
 COPY VERSION .
 
