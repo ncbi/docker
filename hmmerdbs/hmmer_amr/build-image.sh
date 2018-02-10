@@ -4,7 +4,7 @@
 wget -nc ftp://ftp.ncbi.nlm.nih.gov/pub/slottad/amr/AMR.LIB
 
 USERNAME=ncbi
-IMAGE=amr_hmmer
+IMAGE=hmmer_amr
 VERSION=`cat VERSION`
 
 docker build -t $USERNAME/$IMAGE:$VERSION .

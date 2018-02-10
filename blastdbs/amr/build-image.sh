@@ -4,7 +4,7 @@
 wget -nc ftp://ftp.ncbi.nlm.nih.gov/pub/slottad/amr/AMRProt
 
 USERNAME=ncbi
-IMAGE=amr_blast
+IMAGE=blast_amr
 VERSION=`cat VERSION`
 
 docker build -t $USERNAME/$IMAGE:$VERSION .

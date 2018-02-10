@@ -18,7 +18,7 @@ wget -nc ftp://ftp.ncbi.nlm.nih.gov/pub/UniVec/UniVec
 cd ..
 
 USERNAME=ncbi
-IMAGE=contamfilter
+IMAGE=blast_contamfilter
 VERSION=`cat VERSION`
 
 docker build -t $USERNAME/$IMAGE:$VERSION .

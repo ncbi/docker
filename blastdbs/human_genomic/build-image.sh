@@ -10,7 +10,7 @@ done
 cd ..
 
 USERNAME=ncbi
-IMAGE=human_genomic
+IMAGE=blast_human_genomic
 VERSION=`cat VERSION`
 
 docker build -t $USERNAME/$IMAGE:$VERSION .
