@@ -7,7 +7,7 @@ WORKDIR /root/
 
 RUN apt-get -y -m update && apt-get install -y build-essential wget libidn11
 
-COPY ncbi-blast-2.7.1+-src.tar.gz /root
+RUN wget ftp://ftp.ncbi.nlm.nih.gov/blast/executables/LATEST/ncbi-blast-2.7.1+-src.tar.gz
 RUN tar xvf ncbi-blast-2.7.1+-src.tar.gz
 WORKDIR /root/ncbi-blast-2.7.1+-src/c++
 RUN ./configure --with-optimization --with-dll --with-experimental=Int8GI --with-flat-makefile --prefix=/blast
