@@ -1,5 +1,37 @@
 // common.cpp
 
+/*===========================================================================
+*
+*                            PUBLIC DOMAIN NOTICE                          
+*               National Center for Biotechnology Information
+*                                                                          
+*  This software/database is a "United States Government Work" under the   
+*  terms of the United States Copyright Act.  It was written as part of    
+*  the author's official duties as a United States Government employee and 
+*  thus cannot be copyrighted.  This software/database is freely available 
+*  to the public for use. The National Library of Medicine and the U.S.    
+*  Government have not placed any restriction on its use or reproduction.  
+*                                                                          
+*  Although all reasonable efforts have been taken to ensure the accuracy  
+*  and reliability of the software and data, the NLM and the U.S.          
+*  Government do not and cannot warrant the performance or results that    
+*  may be obtained by using this software or data. The NLM and the U.S.    
+*  Government disclaim all warranties, express or implied, including       
+*  warranties of performance, merchantability or fitness for any particular
+*  purpose.                                                                
+*                                                                          
+*  Please cite the author in any work or product based on this material.   
+*
+* ===========================================================================
+*
+* Author: Vyacheslav Brover
+*
+* File Description:
+*   Common utilities
+*
+*/
+
+
 #undef NDEBUG
 #include "common.inc"
 
@@ -827,6 +859,29 @@ void Named::qc () const
     
   ASSERT (goodName (name));
 }
+
+
+
+
+// StringVector
+
+StringVector::StringVector (const string &fName,
+                            size_t reserve_size)
+{
+	reserve (reserve_size);
+	searchSorted = true;
+	ifstream f (fName);
+	string s;
+	string prev;
+	while (f >> s)
+	{
+	  *this << s;
+	  if (s < prev)
+	  	searchSorted = false;
+	  prev = s;
+	}
+}
+
 
 
 
@@ -1773,7 +1828,7 @@ int Application::run (int argc,
     const string logFName = getArg ("log");
   	ASSERT (! logPtr);
     if (! logFName. empty ())
-  		logPtr = new OFStream (logFName);
+  		logPtr = new ofstream (logFName, ios_base::app);
   
   	if (getFlag ("qc"))
   		qc_on = true;
@@ -1820,18 +1875,8 @@ int Application::run (int argc,
   	{
   	  delete logPtr;
   	  logPtr = nullptr;
-  	  if (remove (logFName. c_str ()))
-  	  {
-  	    cout << "Cannot remove log file \"" << logFName << "\"" << endl;
-  	    abort ();
-  	  }
     }
 	}
-	catch (const std::runtime_error &e) 
-	{ 
-	  cout << endl << e. what () << endl;
-	  return 1;
-  }
 	catch (const std::exception &e) 
 	{ 
 	  errorExit (e. what ());

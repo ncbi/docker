@@ -1,15 +1,36 @@
-CPP=g++
-CPPFLAGS=-I. -std=c++11 -malign-double -fno-math-errno -O3
-DEPS = common.inc common.hpp graph.hpp
-OBJ = amr_report.o graph.o common.o 
+CPPFLAGS = -std=gnu++11 \
+  -malign-double -fno-math-errno \
+  -Wall -Wextra \
+  -Wcast-align -Wconversion -Wdeprecated-declarations -Wformat -Winit-self -Wlogical-op \
+  -Wmissing-braces -Wmissing-field-initializers -Wmissing-format-attribute -Wmissing-include-dirs \
+  -Woverloaded-virtual -pedantic -Wparentheses -Wpointer-arith -Wsequence-point -Wshadow -Wunused \
+  -Wsuggest-attribute=format -Wswitch -Wuninitialized -Wsign-conversion -Wuseless-cast \
+  -Werror -O3 
 
-%.o: %.cpp $(DEPS)
-	$(CPP) $(CPPFLAGS) -c -o $@ $<
+CXX=g++
+COMPILE.cpp= $(CXX) $(CPPFLAGS)  -c 
 
-amr_report: $(OBJ)
-	$(CPP) $(CPPFLAGS) -o $@ $^
+prefix = /panfs/pan1.be-md.ncbi.nlm.nih.gov/bacterial_pathogens/backup
+bindir = $(prefix)/bin
+INSTALL_DIR = $(prefix)/packages/amrfinder
+RELEASE_DIR = ../releases/current
+# INSTALL_DIR = /panfs/pan1.be-md.ncbi.nlm.nih.gov/bacterial_pathogens/backup/packages/amrfinder
 
-.PHONY: clean
 
-clean:
-	rm -f *.o *~ core amr_report
+all:	amr_report
+
+common.o:	common.hpp common.inc
+amr_report.o:	common.hpp common.inc 
+amr_reportOBJS=amr_report.o common.o
+amr_report:	$(amr_reportOBJS)
+	$(CXX) -o $@ $(amr_reportOBJS)
+
+install:
+	cp amr_report $(INSTALL_DIR)
+	perl -pe "s#~brovervv/code/prod#$(INSTALL_DIR)#;s#~brovervv/work/AMR/AMRFinder/\w+#$(INSTALL_DIR)#;" AMRFinder-dna.sh > $(INSTALL_DIR)/AMRFinder-dna.sh
+	chmod 755 $(INSTALL_DIR)/AMRFinder-dna.sh
+	perl -pe "s#~brovervv/code/prod#$(INSTALL_DIR)#;s#~brovervv/work/AMR/AMRFinder/\w+#$(INSTALL_DIR)#;" AMRFinder-prot.sh > $(INSTALL_DIR)/AMRFinder-prot.sh
+	chmod 755 $(INSTALL_DIR)/AMRFinder-prot.sh
+
+release:	all
+	cp amr_report AMRFinder-dna.sh AMRFinder-prot.sh $(RELEASE_DIR)

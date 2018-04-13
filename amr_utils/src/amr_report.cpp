@@ -1,10 +1,41 @@
 // amr_report.cpp
 
+/*===========================================================================
+*
+*                            PUBLIC DOMAIN NOTICE                          
+*               National Center for Biotechnology Information
+*                                                                          
+*  This software/database is a "United States Government Work" under the   
+*  terms of the United States Copyright Act.  It was written as part of    
+*  the author's official duties as a United States Government employee and 
+*  thus cannot be copyrighted.  This software/database is freely available 
+*  to the public for use. The National Library of Medicine and the U.S.    
+*  Government have not placed any restriction on its use or reproduction.  
+*                                                                          
+*  Although all reasonable efforts have been taken to ensure the accuracy  
+*  and reliability of the software and data, the NLM and the U.S.          
+*  Government do not and cannot warrant the performance or results that    
+*  may be obtained by using this software or data. The NLM and the U.S.    
+*  Government disclaim all warranties, express or implied, including       
+*  warranties of performance, merchantability or fitness for any particular
+*  purpose.                                                                
+*                                                                          
+*  Please cite the author in any work or product based on this material.   
+*
+* ===========================================================================
+*
+* Author: Vyacheslav Brover
+*
+* File Description:
+*   Identification of AMR genes using the AMR database and BLAST and HMM search results
+*
+*/
+   
+   
 #undef NDEBUG 
 #include "common.inc"
 
 #include "common.hpp"
-#include "graph.hpp"
 using namespace Common_sp;
 
 
@@ -13,9 +44,15 @@ namespace
 {
 
 
-struct Fam : Tree::TreeNode  
+constexpr static double frac_delta = 1e-5;  // PAR      
+
+
+
+struct Fam : Root 
 // Table PROTEUS.VF..FAM
 {
+	const Fam* parent {nullptr};
+	  // Tree
   string id; 
   string genesymbol;
   string familyName; 
@@ -28,8 +65,7 @@ struct Fam : Tree::TreeNode
   double tc2 {NAN}; 
 
 
-  Fam (Tree &tree,
-       Fam* parent_arg,
+  Fam (Fam* parent_arg,
        const string &id_arg,
        const string &genesymbol_arg,
        const string &hmm_arg,
@@ -37,7 +73,7 @@ struct Fam : Tree::TreeNode
        double tc2_arg,
        const string &familyName_arg,
        bool reportable_arg)
-    : Tree::TreeNode (tree, parent_arg)
+    : parent (parent_arg)
     , id (id_arg)
     , genesymbol (genesymbol_arg)
     , familyName (familyName_arg)
@@ -60,20 +96,26 @@ struct Fam : Tree::TreeNode
       ASSERT (tc2 >= 0);        
       ASSERT (tc2 <= tc1);
     }
-  explicit Fam (Tree &tree)
-    : Tree::TreeNode (tree, nullptr)
+  Fam ()
     {}
-  void saveContent (ostream &os) const final
+  void saveText (ostream &os) const final
     { os << hmm << " " << tc1 << " " << tc2 << " " << familyName << " " << reportable; }
 
 
-  string getName () const final
-    { return id; }
+	bool descendantOf (const Fam* ancestor) const
+	  { if (! ancestor)
+	  	  return true;
+	  	if (this == ancestor)
+	  		return true;
+	  	if (parent)
+	  		return parent->descendantOf (ancestor);
+	  	return false;
+	  }
   const Fam* getHmmFam () const
     // Return: most specific HMM
     { const Fam* f = this;
       while (f && f->hmm. empty ())
-        f = static_cast <const Fam*> (f->getParent ());
+        f = static_cast <const Fam*> (f->parent);
       return f;
     }
 };
@@ -136,12 +178,12 @@ private:
             LESS_PART (other, *this, score1);
           //return score2 >= other. score2;  // GP-16770
             LESS_PART (other, *this, fam->tc1);
-            LESS_PART (*this, other, fam->hmm);  // Tie resolution
+            LESS_PART (*this, other, fam->id);  // Tie resolution
             return true;
           }
         default: ERROR;
       }
-      return false;
+      throw logic_error ("Never call");
     }
 public:
   bool better (const HmmAlignment &other,
@@ -189,7 +231,8 @@ public:
 
 
 double ident_min = NAN;
-double cover_min = NAN;
+double complete_cover_min = NAN;
+double partial_cover_min = NAN;
 bool cdsExist = false;
 bool print_fam = false;
 
@@ -261,7 +304,7 @@ struct BlastAlignment : Root
   size_t part {1};    
     // >= 1
     // <= parts
-  size_t parts {1};   // > 1: not used ??
+  size_t parts {1};  
     // >= 1
   // Table FAM
   string famId;  
@@ -408,7 +451,7 @@ struct BlastAlignment : Root
         cdss_. push_back (CDS ());
       for (const CDS& cds : cdss_)
       {
-        TabDel td;
+        TabDel td (2, false);
       //if (targetProt)
           td << targetName;
         if (cdsExist /*! (gffFName. empty ())*/)
@@ -426,7 +469,7 @@ struct BlastAlignment : Root
         if (gi)
           td << refLen
              << refCoverage () * 100  
-             << (targetProt ? pRefEffectiveLen () : pIdentity ()) * 100  // refIdentity
+             << (/*targetProt ? pRefEffectiveLen () :*/ pIdentity ()) * 100  // refIdentity
              << length
              << accessionProt
              << product
@@ -455,15 +498,17 @@ struct BlastAlignment : Root
     
 
   bool allele () const
-    { return famId != gene; }
+    { return famId != gene && parts == 1; }
   size_t targetTail (bool upstream) const
     { return targetStrand == upstream ? targetStart : (targetLen - targetEnd); }
   size_t refEffectiveLen () const
     { return partialDna ? refEnd - refStart : refLen; }
+#if 0
   double pRefEffectiveLen () const
     { ASSERT (nident);
       return (double) nident / (double) refEffectiveLen ();
     }
+#endif
   double pIdentity () const
     { return (double) nident / (double) length; }
   double refCoverage () const
@@ -473,35 +518,43 @@ struct BlastAlignment : Root
              && nident == refLen 
              && refLen == length;
 	  }
+  bool partial () const
+    // Requires: good()
+    { return refCoverage () < complete_cover_min - frac_delta; }
 	string getMethod () const
 	  { return refExactlyMatched () 
 	             ? allele () && (! targetProt || refLen == targetLen)
 	               ? "ALLELE"
 	               : "EXACT"  // PD-776
 	             : gi
-	                ? "BLAST"
+	                ? partial ()
+	                  ? "PARTIAL"
+	                  : "BLAST"
 	                : "HMM"; 
 	  }
 	  // PD-736
   bool good () const
-    { const double delta = 1e-5;  // PAR
-      if (! reportPseudo)
+    { if (! reportPseudo)
       {
         if (stopCodon)
           return false; 
         if (frameShift)
           return false; 
       }
+    #if 0
 	    if (targetProt)
-	    { if (pRefEffectiveLen () < ident_min - delta)  
+	    { if (pRefEffectiveLen () < ident_min - frac_delta)  
   	      return false;
   	  }
   	  else
+  	#endif
   	  { // PD-1032
-  	    if (   pIdentity ()   < ident_min - delta
-  	        || refCoverage () < cover_min - delta
+  	    if (   pIdentity ()   < ident_min - frac_delta
+  	        || refCoverage () < partial_cover_min - frac_delta
   	       )
   	      return false;
+  	    if (parts > 1 && refCoverage () < complete_cover_min - frac_delta)
+  	    	return false;
   	  }
 	    return true;
     }
@@ -530,12 +583,15 @@ private:
           return false;
       }*/
       // PD-807
-      if (! other. insideEq (*this))
+    //if (! targetProt && ! other. insideEq (*this))
+      if (   ! other. insideEq (*this)
+      	  && !        insideEq (other)
+      	 )
         return false;
-      LESS_PART (other, *this, refExactlyMatched ());  // PD-1261
+      LESS_PART (other, *this, refExactlyMatched ());  // PD-1261, PD-1678
       LESS_PART (other, *this, nident);
       LESS_PART (*this, other, refEffectiveLen ());
-      return accessionProt <= other. accessionProt;  // PD-1245
+      return true;
     }
 public:
   const Fam* getFam () const
@@ -546,13 +602,19 @@ public:
       return fam;
     }
   bool better (const BlastAlignment &other) const
-    { return betterEq (other) && ! other. betterEq (*this); }
+    { return    betterEq (other) 
+    	       && (   ! other. betterEq (*this) 
+    	           || accessionProt < other. accessionProt  // Tie resolution; PD-1245
+    	          );
+    }
   bool better (const HmmAlignment& other) const
     { ASSERT (other. good ());
       if (targetName != other. sseqid)
         return false;
       return    refExactlyMatched () 
-             || getFam () -> getHmmFam () == other. fam;
+           //|| getFam () -> getHmmFam () == other. fam
+             || getFam () -> descendantOf (other. fam)
+             ;
     }
   bool operator< (const BlastAlignment &other) const
     { LESS_PART (*this, other, targetName);
@@ -580,7 +642,7 @@ public:
 struct ThisApplication : Application
 {
   ThisApplication ()
-    : Application ("Report VF..FAM.id's matching proteins")
+    : Application ("Report AMR proteins")
     {
       // Input
       addKey ("fam", "Table FAM");
@@ -591,7 +653,9 @@ struct ThisApplication : Application
       addKey ("hmmdom", "HMM domain alignments");
       addKey ("hmmsearch", "Output of hmmsearch");
       addKey ("ident_min", "Min. identity to the reference protein (0..1)", "0.9");
-      addKey ("cover_min", "Min. coverage of the reference protein (0..1)", "0.9");
+      addKey ("complete_cover_min", "Min. coverage of the reference protein (0..1) for a complete hit", "0.9");
+      addKey ("partial_cover_min", "Min. coverage of the reference protein (0..1) for a partial hit", "0.5");
+      addFlag ("skip_hmm_check", "Skip checking HMM for a BLAST hit");
       // Output
       addKey ("out", "Identifiers of the reported input proteins");
       addFlag ("print_fam", "Print the FAM.id instead of gene symbol"); 
@@ -612,16 +676,26 @@ struct ThisApplication : Application
     const string hmmDom       = getArg ("hmmdom");
     const string hmmsearch    = getArg ("hmmsearch");  
                  ident_min    = str2<double> (getArg ("ident_min"));  
-                 cover_min    = str2<double> (getArg ("cover_min"));  
+                 complete_cover_min    = str2<double> (getArg ("complete_cover_min"));  
+                 partial_cover_min     = str2<double> (getArg ("partial_cover_min")); 
+    const bool skip_hmm_check = getFlag ("skip_hmm_check"); 
     const string outFName     = getArg ("out");
                  print_fam    = getFlag ("print_fam");
                  reportPseudo = getFlag ("pseudo");
     const bool nosame         = getFlag ("nosame");
     const bool noblast        = getFlag ("noblast");
-    ASSERT (! famFName. empty ());
+    
+    if (famFName. empty ())
+    	throw runtime_error ("fam (protein family hierarchy) file is missing");
     ASSERT (hmmsearch. empty () == hmmDom. empty ());
-    ASSERT (ident_min >= 0 && ident_min <= 1);
-    ASSERT (cover_min >= 0 && cover_min <= 1);
+    if (! (ident_min >= 0 && ident_min <= 1))
+    	throw runtime_error ("ident_min must be between 0 and 1");
+    if (! (complete_cover_min >= 0 && complete_cover_min <= 1))
+    	throw runtime_error ("complete_cover_min must be between 0 and 1");
+    if (! (partial_cover_min >= 0 && partial_cover_min <= 1))
+    	throw runtime_error ("partial_cover_min must be between 0 and 1");
+    if (partial_cover_min > complete_cover_min)
+    	throw runtime_error ("partial_cover_min msut be less than or equal to complete_cover_min");
     
     
     cdsExist =    ! blastxFName. empty ()
@@ -696,8 +770,7 @@ struct ThisApplication : Application
     }
   
   
-  	Tree fams; 
-  	auto root = new Fam (fams);
+  	auto root = new Fam ();
   	// Pass 1  
     {
       LineInput f (famFName);  
@@ -715,7 +788,7 @@ struct ThisApplication : Application
   	    ASSERT (   reportable == 0 
   	            || reportable == 1
   	           );
-  	    auto fam = new Fam (fams, root, famId, genesymbol, hmm, tc1, tc2, f. line, reportable);
+  	    auto fam = new Fam (root, famId, genesymbol, hmm, tc1, tc2, f. line, reportable);
   	    famId2fam [famId] = fam;
   	    if (! fam->hmm. empty ())
   	      hmm2fam [fam->hmm] = fam;
@@ -734,14 +807,9 @@ struct ThisApplication : Application
   	    Fam* parent = nullptr;
   	    if (! parentFamId. empty ())
   	      { EXEC_ASSERT (parent = const_cast <Fam*> (famId2fam [parentFamId])); }
-  	    child->setParent (parent);
+  	    child->parent = parent;
   	  }
   	}
-    { 
-      Unverbose unv;
-    	if (verbose ())
-    	  fams. print (cout);
-    }
     
   
   	// BlastAlignment::good()
@@ -809,12 +877,12 @@ struct ThisApplication : Application
   	    istringstream iss (f. line);
         string  target_name, accession, query_name, query_accession;
         size_t tlen, qlen, n, of, hmm_from, hmm_to, alignment_from, alignment_to, env_from, env_to;
-        double eValue, full_score, full_bias, cValue, i_eValue, domain_score, domain_bias, acc;
+        double eValue, full_score, full_bias, cValue, i_eValue, domain_score, domain_bias, accuracy;
   	    iss >> target_name >> accession >> tlen >> query_name >> query_accession >> qlen 
   	        >> eValue >> full_score >> full_bias 
   	        >> n >> of >> cValue >> i_eValue >> domain_score >> domain_bias 
   	        >> hmm_from >> hmm_to >> alignment_from >> alignment_to >> env_from >> env_to
-  	        >> acc;
+  	        >> accuracy;
   	    ASSERT (accession == "-");
   	    hmm_from--;
   	    alignment_from--;
@@ -882,6 +950,18 @@ struct ThisApplication : Application
   	  if (! goodBlastAls. empty ())
   	    goodBlastAls. front (). print (cout);
   	}
+  #if 0
+	  for (const auto& blastAl1 : goodBlastAls)
+		  for (const auto& blastAl2 : goodBlastAls)
+		  {
+		  	cout << endl;
+		  	blastAl1. print (cout);
+		  	blastAl2. print (cout);
+		  	cout        << blastAl1. better (blastAl2) 
+		  	     << ' ' << blastAl2. better (blastAl1) 
+		  	     << endl;
+		  }
+	#endif
 
 
     // Pareto-better()  
@@ -923,24 +1003,26 @@ struct ThisApplication : Application
 
 
     // PD-741
-  	if (! hmmsearch. empty ())
+  	if (! skip_hmm_check && ! hmmsearch. empty ())
       for (Iter<BlastAls> iter (goodBlastAls); iter. next ();)
-        if (const Fam* fam = iter->getFam () -> getHmmFam ())  
-        {
-          bool found = false;
-      	  for (const auto& hmmAl : goodHmmAls)
-            if (   iter->targetName == hmmAl. sseqid
-                && fam == hmmAl. fam
-               )
-            {
-              found = true;
-              break;
-            }
-          if (   ! found            // BLAST is wrong
-              && ! iter->refExactlyMatched ()
-             )  
-            iter. erase ();
-        }
+        if (   /*! iter->refExactlyMatched () */
+        	     iter->pIdentity () < 0.98 - frac_delta  // PAR  // PD-1673
+            && ! iter->partial ()
+           )
+	        if (const Fam* fam = iter->getFam () -> getHmmFam ())  
+	        {
+	          bool found = false;
+	      	  for (const auto& hmmAl : goodHmmAls)
+	            if (   iter->targetName == hmmAl. sseqid
+	                && fam == hmmAl. fam
+	               )
+	            {
+	              found = true;
+	              break;
+	            }
+	          if (! found)   // BLAST is wrong
+	            iter. erase ();
+	        }
   	if (verbose ())
   	  cout << "# Best Blasts left: " << goodBlastAls. size () << endl;
 

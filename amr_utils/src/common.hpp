@@ -1,5 +1,37 @@
 // common.hpp
 
+/*===========================================================================
+*
+*                            PUBLIC DOMAIN NOTICE                          
+*               National Center for Biotechnology Information
+*                                                                          
+*  This software/database is a "United States Government Work" under the   
+*  terms of the United States Copyright Act.  It was written as part of    
+*  the author's official duties as a United States Government employee and 
+*  thus cannot be copyrighted.  This software/database is freely available 
+*  to the public for use. The National Library of Medicine and the U.S.    
+*  Government have not placed any restriction on its use or reproduction.  
+*                                                                          
+*  Although all reasonable efforts have been taken to ensure the accuracy  
+*  and reliability of the software and data, the NLM and the U.S.          
+*  Government do not and cannot warrant the performance or results that    
+*  may be obtained by using this software or data. The NLM and the U.S.    
+*  Government disclaim all warranties, express or implied, including       
+*  warranties of performance, merchantability or fitness for any particular
+*  purpose.                                                                
+*                                                                          
+*  Please cite the author in any work or product based on this material.   
+*
+* ===========================================================================
+*
+* Author: Vyacheslav Brover
+*
+* File Description:
+*   Common utilities
+*
+*/
+
+
 #ifndef COMMON_HPP_64052  // random number
 #define COMMON_HPP_64052
 
@@ -39,7 +71,7 @@
 #include <iomanip>
 #include <memory>
 #include <algorithm>
-#include <cmath>
+
 
 
 namespace Common_sp
@@ -1194,14 +1226,17 @@ public:
 		      	break;
     	searchSorted = true;
     }
+  void checkSorted () const
+    { if (! searchSorted)
+    	  throw logic_error ("Vector is not sorted for search");
+    }
 
   size_t binSearch (const T &value,
                     bool exact = true) const
     // Return: if exact then NO_INDEX or vec[Return] = value else min {i : vec[i] >= value}
     { if (P::empty ())
     	  return NO_INDEX;
-    	if (! searchSorted)
-    	  throw logic_error ("Vector is not sorted for search");
+    	checkSorted ();
     	size_t lo = 0;  // vec.at(lo) <= value
     	size_t hi = P::size () - 1;  
     	// lo <= hi
@@ -1259,10 +1294,8 @@ public:
       }
   template <typename U>
     bool intersectsFast2 (const Vector<U> &other) const
-      { if (! searchSorted)
-      	  throw logic_error ("Vector is not sorted for search");
-      	if (! other. searchSorted)
-      	  throw logic_error ("Other Vector is not sorted for search");
+      { checkSorted ();
+      	other. checkSorted ();
       	size_t i = 0;
       	const size_t otherSize = other. size ();
         for (const T& t : *this)
@@ -1279,7 +1312,6 @@ public:
     void setMinus (const Vector<U> &other)
       { filterIndex ([&] (size_t i) { return other. containsFast ((*this) [i]); }); }
       
-  // Requires: sorted
   bool isUniq () const
     { if (P::size () <= 1)
         return true;
@@ -1304,6 +1336,8 @@ public:
     // Input: *this, vec: unique
     { if (other. empty ())
         return 0;
+      checkSorted ();
+      other. checkSorted ();      
       size_t n = 0;
       size_t j = 0;
       for (const T& x : *this)
@@ -1417,6 +1451,8 @@ public:
   StringVector (initializer_list<string> init)
     : P (init)
     {}
+  StringVector (const string &fName,
+                size_t reserve_size);
 
 
   string toString (const string& sep) const
@@ -1974,6 +2010,36 @@ public:
 	
 
 
+struct PairFile : Root
+{
+private:
+	LineInput f;
+public:
+	string name1;
+	string name2;
+	// name1 < name2
+	
+	explicit PairFile (const string &fName)
+	  : f (fName, 100 * 1024, 1000)  // PAR
+	  {}
+	  
+	bool next ()
+	  { if (! f. nextLine ())
+	  	  return false;
+      istringstream iss (f. line);
+      iss >> name1 >> name2;
+      if (name2. empty ())
+      	throw runtime_error ("Bad request: '" + name1 + "' - '" + name2 + "'");
+      if (name1 == name2)
+      	throw runtime_error ("Same name: " + name1);
+      if (name1 > name2)
+      	swap (name1, name2);
+      return true;
+	  }
+};
+
+
+
 struct Token : Root
 {
 	static const char quote = '\"';
@@ -2146,15 +2212,45 @@ void csvLine2vec (const string &line,
 
 
 
+class ONumber
+{
+	ostream &o;
+  const streamsize prec_old;
+	const ios_base::fmtflags flags_old;
+public:
+	ONumber (ostream &o_arg,
+	         streamsize precision,
+	         bool scientific_arg)
+	  : o (o_arg)
+	  , prec_old (o. precision ())
+	  , flags_old (o. flags ())
+	  { if (scientific_arg)
+	  	  o << scientific;
+	  	else
+	  		o << fixed;
+      o. precision (precision);
+	  }
+ ~ONumber () noexcept
+    { o. flags (flags_old); 
+      o. precision (prec_old); 
+    }
+};
+
+
+
+
 struct TabDel
 // Usage: {<<field;}* str();
 {
 private:
   ostringstream tabDel;
+  ONumber on;
 public:
   
-  TabDel ()
-    {}
+  TabDel (streamsize precision = 6,
+	        bool scientific = false)
+	  : on (tabDel, precision, scientific)
+	  {}
     
   template <typename T>
     TabDel& operator<< (const T &field)
@@ -2417,33 +2513,6 @@ public:
 
 
 
-class ONumber
-{
-	ostream &o;
-  const streamsize prec_old;
-	const ios_base::fmtflags flags_old;
-public:
-	ONumber (ostream &o_arg,
-	         streamsize precision,
-	         bool scientific_arg)
-	  : o (o_arg)
-	  , prec_old (o. precision ())
-	  , flags_old (o. flags ())
-	  { if (scientific_arg)
-	  	  o << scientific;
-	  	else
-	  		o << fixed;
-      o. precision (precision);
-	  }
- ~ONumber () noexcept
-    { o. flags (flags_old); 
-      o. precision (prec_old); 
-    }
-};
-
-
-
-
 void exec (const string &cmd);
 
 
@@ -2590,7 +2659,7 @@ protected:
       addFlag ("noprogress", "Turn off progress printout");
       addFlag ("profile", "Use chronometers to profile");
       addKey ("json", "Output file in Json format");
-      addKey ("log", "log file");
+      addKey ("log", "Error log file, deleted on finishing the application");
     }
     // To invoke: addKey(), addFlag(), addPositional()
   // Command-line parameters
