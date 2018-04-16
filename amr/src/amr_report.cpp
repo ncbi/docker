@@ -37,6 +37,8 @@
 
 #include "common.hpp"
 using namespace Common_sp;
+#include "gff.hpp"
+using namespace GFF_sp;
 
 
 
@@ -242,38 +244,6 @@ const string frameShiftS ("[frameshift]");
 
 
 
-struct CDS 
-{
-  string contig;
-  size_t start {0};
-  size_t stop {0};
-  bool strand {false};
-  
-  CDS (const string &contig_arg,
-       size_t start_arg,
-       size_t stop_arg,
-       bool strand_arg)
-    : contig (contig_arg)
-    , start (start_arg)
-    , stop (stop_arg)
-    , strand (strand_arg)
-    { ASSERT (! contig. empty ());
-      ASSERT (start < stop); 
-    }
-  CDS ()
-    {} 
-    
-  bool operator< (const CDS& other) const
-    { LESS_PART (*this, other, contig)
-      LESS_PART (*this, other, start)
-      LESS_PART (*this, other, stop)
-      LESS_PART (*this, other, strand)
-      return false;
-    }
-};
-
-
-
 struct BlastAlignment : Root 
 {
   // BLAST alignment
@@ -315,7 +285,7 @@ struct BlastAlignment : Root
   const bool mutant {false}; 
   string product;  
 
-  vector<CDS> cdss;
+  vector<Cds> cdss;
   
   static constexpr size_t mismatchTail_aa = 10;  // PAR
   size_t mismatchTailTarget {0};
@@ -446,10 +416,10 @@ struct BlastAlignment : Root
       const string na ("NA");
       const string proteinName (refExactlyMatched () || ! gi ? product : nvl (getFam () -> familyName, na));
       ASSERT (! contains (proteinName, '\t'));
-      vector<CDS> cdss_ (cdss);
+      vector<Cds> cdss_ (cdss);
       if (cdss_. empty ())
-        cdss_. push_back (CDS ());
-      for (const CDS& cds : cdss_)
+        cdss_. push_back (Cds ());
+      for (const Cds& cds : cdss_)
       {
         TabDel td (2, false);
       //if (targetProt)
@@ -712,62 +682,66 @@ struct ThisApplication : Application
     
     //////////////////////////////////// Input /////////////////////////////////////
 
-    map<string/*locusTag*/, Set<CDS> > locusTag2cdss; 
+  #if 0
+    map<string/*locusTag*/, Set<Cds> > locusTag2cdss; 
     if (! gffFName. empty ())
     {
       LineInput f (gffFName /*, 100 * 1024, 1*/);
       while (f. nextLine ())
       {
+      	// https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
   	    trim (f. line);
-  	    replace (f. line, ' ', '_');
+  	    replace (f. line, ' ', '_');  // to use '\t' as delimiter
   	    if (   f. line. empty () 
   	        || f. line [0] == '#'
   	       )
   	      continue;
   	    istringstream iss (f. line);
-        string contig, method, type, dot, strand, n, rest;
+        string seqid, source, type, score /*real number*/, strand, phase /*frame*/, attributes;
         size_t start, stop;
-  	    iss >> contig >> method >> type >> start >> stop >> dot >> strand >> n >> rest;
-  	    ASSERT (dot == ".");
-  	    ASSERT (start <= stop);
+  	    iss >> seqid >> source >> type >> start >> stop >> score >> strand >> phase >> attributes;
   	    ASSERT (start >= 1);
   	    start--;
-  	    if (contains (contig, ":"))
-  	      findSplit (contig, ':');  // = project_id
-  	    if (   type != "CDS"
+  	    if (contains (seqid, ":"))
+  	      findSplit (seqid, ':');  // = project_id
+  	    if (   type != "Cds"
   	        && type != "gene"
   	       )
   	      continue;
   	      
+  	    ASSERT (start <= stop);
   	    ASSERT (   strand == "+" 
   	            || strand == "-"
   	           );
   	           
-  	    const bool pseudo = contains (rest, "pseudo=true");
-  	    if (pseudo && type == "CDS")  // reportPseudo ??
+  	    const bool pseudo = contains (attributes, "pseudo=true");
+  	    if (pseudo && type == "Cds")  // reportPseudo ??
   	      continue;
   
   	    string locusTag;
   	    const string locusTagName (pseudo ? "locus_tag=" : "Name=");
-  	    while (! rest. empty ())
+  	    while (! attributes. empty ())
   	    {
-    	    locusTag = findSplit (rest, ';');
-    	    while (trimPrefix (locusTag, "_"));
+    	    locusTag = findSplit (attributes, ';');
+    	    while (trimPrefix (locusTag, "_"));  // trim leading spaces
     	    if (isLeft (locusTag, locusTagName))
     	      break;
     	  }
    	    if (! isLeft (locusTag, locusTagName))
    	      ERROR_MSG ("No locus tag in " + gffFName + ", line " + toString (f. lineNum));    	  
     	  if (contains (locusTag, ":"))
-    	  { EXEC_ASSERT (isLeft (findSplit (locusTag, ':'), locusTagName)); }
+    	    { EXEC_ASSERT (isLeft (findSplit (locusTag, ':'), locusTagName)); }
     	  else
     	    findSplit (locusTag, '='); 
     	  trimPrefix (locusTag, "\"");
     	  trimSuffix (locusTag, "\"");
     	  
-  	    locusTag2cdss [locusTag] << CDS (contig, start, stop, strand == "+");
+  	    locusTag2cdss [locusTag] << Cds (seqid, start, stop, strand == "+");
   	  }
     }
+  #else
+    const Gff gff (gffFName);
+  #endif
   
   
   	auto root = new Fam ();
@@ -1063,14 +1037,21 @@ struct ThisApplication : Application
     	for (auto& al : goodBlastAls)
     	  if (al. targetProt)
       	{
+      	  ASSERT (al. cdss. empty ());
       	  string s (al. targetName);
       	  trimSuffix (s, "|");
       	  const string locusTag (rfindSplit (s, '|'));
-      	  const Set<CDS>& cdss = locusTag2cdss [locusTag];
+      	#if 0
+      	  const Set<Cds>& cdss = locusTag2cdss [locusTag];
       	  if (cdss. empty ())
       	    ERROR_MSG ("Locus tag \"" + locusTag + "\" is misssing in .gff file. Protein name: " + al. targetName);
-      	  ASSERT (al. cdss. empty ());
       	  insertAll (al. cdss, cdss);
+      	#else
+      	  if (const Set<Cds>* cdss = findPtr (gff. seqid2cdss, locusTag))
+	      	  insertAll (al. cdss, *cdss);
+      	  else
+      	    throw runtime_error ("Locus tag \"" + locusTag + "\" is misssing in .gff file. Protein name: " + al. targetName);
+      	#endif
       	  al. qc ();
       	}
     

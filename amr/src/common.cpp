@@ -946,7 +946,7 @@ Input::Input (const string &fName,
 , prog (0, displayPeriod)  
 { 
   if (! ifs. good ())
-    throw runtime_error ("Bad file: " + fName);
+    throw runtime_error ("Bad file: '" + fName  + "'");
   EXEC_ASSERT (ifs. rdbuf () -> pubsetbuf (buf. get (), (long) bufSize));   
 }
  
@@ -1500,9 +1500,10 @@ JsonMap::JsonMap (const string &fName)
 {
   ifstream ifs (fName. c_str ());
   if (! ifs. good ())
-    ERROR_MSG ("Bad file: " + fName);
+    throw runtime_error ("Bad file: '" + fName + "'");
   const Token token (readToken (ifs));
-  ASSERT (token. isDelimiter ('{'));
+  if (! token. isDelimiter ('{'))
+    throw runtime_error ("Json file: '" + fName + "': should start with '{'");
   parse (ifs);
 }
 

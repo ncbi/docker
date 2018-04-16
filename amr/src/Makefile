@@ -17,13 +17,25 @@ RELEASE_DIR = ../releases/current
 # INSTALL_DIR = /panfs/pan1.be-md.ncbi.nlm.nih.gov/bacterial_pathogens/backup/packages/amrfinder
 
 
-all:	amr_report
+all:	amr_report fasta_check gff_check
 
 common.o:	common.hpp common.inc
-amr_report.o:	common.hpp common.inc 
-amr_reportOBJS=amr_report.o common.o
+gff.o: gff.hpp common.hpp common.inc
+
+amr_report.o:	common.hpp common.inc gff.hpp
+amr_reportOBJS=amr_report.o common.o gff.o
 amr_report:	$(amr_reportOBJS)
 	$(CXX) -o $@ $(amr_reportOBJS)
+
+fasta_check.o:	common.hpp common.inc 
+fasta_checkOBJS=fasta_check.o common.o 
+fasta_check:	$(fasta_checkOBJS)
+	$(CXX) -o $@ $(fasta_checkOBJS)
+
+gff_check.o:	common.hpp common.inc gff.hpp
+gff_checkOBJS=gff_check.o common.o gff.o
+gff_check:	$(gff_checkOBJS)
+	$(CXX) -o $@ $(gff_checkOBJS)
 
 install:
 	cp amr_report $(INSTALL_DIR)

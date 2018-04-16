@@ -1312,14 +1312,16 @@ public:
     void setMinus (const Vector<U> &other)
       { filterIndex ([&] (size_t i) { return other. containsFast ((*this) [i]); }); }
       
-  bool isUniq () const
+  size_t findDuplicate () const
     { if (P::size () <= 1)
-        return true;
+        return NO_INDEX;
       FOR_START (size_t, i, 1, P::size ())
         if ((*this) [i] == (*this) [i - 1])
-          return false;
-      return true;
+          return i;
+      return NO_INDEX;
     }
+  bool isUniq () const
+    { return findDuplicate () == NO_INDEX; }
   void uniq ()
     { if (P::size () <= 1)
         return;
