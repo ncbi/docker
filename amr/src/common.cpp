@@ -1166,30 +1166,23 @@ void Token::qc () const
 // OFStream
 
 void OFStream::open (const string &dirName,
-					           const string &pathName,
-					           const string &extension)
+	                   const string &fileName,
+	                   const string &extension)
 { 
-	ASSERT (! is_open ());	
-	ASSERT (! pathName. empty ());
+	ASSERT (! fileName. empty ());
+	ASSERT (! is_open ());
 	
-	string name;
+	string pathName;
 	if (! dirName. empty () && ! isDirName (dirName))
-	  name = dirName + "/";
-	name += pathName;
+	  pathName = dirName + "/";
+	pathName += fileName;
 	if (! extension. empty ())
-		name += "." + extension;
-	
-	ofstream::open (name. c_str ());
-/*	
-	if (eof ())
-		cout << "eof" << endl;
-	if (fail ())
-		cout << "fail" << endl;
-	if (bad ())
-		cout << "bad" << endl;
-*/	
+		pathName += "." + extension;
+		
+	ofstream::open (pathName);
+
 	if (! good ())
-	  throw runtime_error ("Cannot create file \"" + name + "\"");
+	  throw runtime_error ("Cannot create file \"" + pathName + "\"");
 }
 
 
@@ -1735,7 +1728,7 @@ string Application::getInstruction () const
   for (const Key& key : keys)
     instr += " " + key. str ();
   
-  instr += string ("\n") + "Help:  " + programName + " -help";
+  instr += string ("\n") + "Help:  " + programName + " -help|-h";
 
   return instr;
 }
@@ -1787,7 +1780,9 @@ int Application::run (int argc,
           if (key)
             errorExitStr ("Key with no value: " + key->name + "\n" + getInstruction ());
           const string name (s. substr (1));
-          if (name == "help")
+          if (   name == "help"
+          	  || name == "h"
+          	 )
           {
             cout << getHelp () << endl;
             return 0;

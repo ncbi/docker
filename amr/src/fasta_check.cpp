@@ -53,6 +53,7 @@ struct ThisApplication : Application
     {
       addPositional ("in", "FASTA file");
       addFlag ("aa", "Amino acid sequenes, otherwise nucleotide");
+      addFlag ("hyphen", "Hyphens are allowed");
     }
 
 
@@ -61,6 +62,7 @@ struct ThisApplication : Application
   {
     const string fName = getArg ("in");
     const bool aa      = getFlag ("aa");
+    const bool hyphen  = getFlag ("hyphen");
     
 
     size_t lines = 0;
@@ -100,14 +102,20 @@ struct ThisApplication : Application
     			throw runtime_error (errorS + "FASTA should start with '>'");
     		seqSize += f. line. size ();
     	  for (const char c : f. line)
-    	  	if (aa)
-    	  	{
-	    	  	if (! charInSet (c, "acdefghiklmnpqrstvwyxbzjuoACDEFGHIKLMNPQRSTVWYXBZJUO*"))
-	    	  		throw runtime_error (errorS + "Wrong amino acid character " + c);
-	    	  }
-    	  	else
-	    	  	if (! charInSet (c, "acgtbdhkmnrsvwyACGTBDHKMNRSVWY"))
-	    	  		throw runtime_error (errorS + "Wrong nucleotide character: " + c);
+    	  	if (c == '-')
+    	  		if (hyphen)
+    	  			;
+    	  		else
+	    	  		throw runtime_error (errorS + "hyphen in the sequence");
+	    	  else
+	    	  	if (aa)
+	    	  	{
+		    	  	if (! charInSet (c, "acdefghiklmnpqrstvwyxbzjuoACDEFGHIKLMNPQRSTVWYXBZJUO*"))
+		    	  		throw runtime_error (errorS + "Wrong amino acid character " + c);
+		    	  }
+	    	  	else
+		    	  	if (! charInSet (c, "acgtbdhkmnrsvwyACGTBDHKMNRSVWY"))
+		    	  		throw runtime_error (errorS + "Wrong nucleotide character: " + c);
     	}
     	first = false;
 	  }

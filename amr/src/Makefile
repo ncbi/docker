@@ -13,9 +13,9 @@ COMPILE.cpp= $(CXX) $(CPPFLAGS)  -c
 prefix = /panfs/pan1.be-md.ncbi.nlm.nih.gov/bacterial_pathogens/backup
 bindir = $(prefix)/bin
 INSTALL_DIR = $(prefix)/packages/amrfinder
-RELEASE_DIR = ../releases/current
 # INSTALL_DIR = /panfs/pan1.be-md.ncbi.nlm.nih.gov/bacterial_pathogens/backup/packages/amrfinder
 
+.PHONY: all clean install
 
 all:	amr_report fasta_check gff_check
 
@@ -37,12 +37,14 @@ gff_checkOBJS=gff_check.o common.o gff.o
 gff_check:	$(gff_checkOBJS)
 	$(CXX) -o $@ $(gff_checkOBJS)
 
+clean:
+	rm *.o
+	rm amr_report fasta_check gff_check
+
 install:
-	cp amr_report $(INSTALL_DIR)
+	cp amr_report fasta_check gff_check $(INSTALL_DIR)
 	perl -pe "s#~brovervv/code/prod#$(INSTALL_DIR)#;s#~brovervv/work/AMR/AMRFinder/\w+#$(INSTALL_DIR)#;" AMRFinder-dna.sh > $(INSTALL_DIR)/AMRFinder-dna.sh
 	chmod 755 $(INSTALL_DIR)/AMRFinder-dna.sh
 	perl -pe "s#~brovervv/code/prod#$(INSTALL_DIR)#;s#~brovervv/work/AMR/AMRFinder/\w+#$(INSTALL_DIR)#;" AMRFinder-prot.sh > $(INSTALL_DIR)/AMRFinder-prot.sh
 	chmod 755 $(INSTALL_DIR)/AMRFinder-prot.sh
 
-release:	all
-	cp amr_report AMRFinder-dna.sh AMRFinder-prot.sh $(RELEASE_DIR)

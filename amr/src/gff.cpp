@@ -76,10 +76,11 @@ bool Cds::operator< (const Cds& other) const
 
 // Gff
 
-Gff::Gff (const string &fName)
+Gff::Gff (const string &fName,
+	        bool locus_tag)
 {
 	if (fName. empty ())
-		return;
+		throw runtime_error ("Empty GFF file name");
 	
   LineInput f (fName /*, 100 * 1024, 1*/);
   while (f. nextLine ())
@@ -113,6 +114,7 @@ Gff::Gff (const string &fName)
 
     if (   type != "CDS"
         && type != "gene"
+        && type != "pseudogene"
        )
       continue;
       
@@ -141,12 +143,14 @@ Gff::Gff (const string &fName)
        )
     	throw runtime_error (errorS + "strand should be '+' or '-'");
            
-    const bool pseudo = contains (attributes, "pseudo=true");
-    if (pseudo && type == "CDS")  // reportPseudo ??
-      continue;
+    const bool pseudo =    contains (attributes, "pseudo=true")
+                        || contains (attributes, "gene_biotype=pseudogene")
+                        || type == "pseudogene";
+  //if (pseudo && type == "CDS")  
+    //continue;
 
     string locusTag;
-    const string locusTagName (pseudo ? "locus_tag=" : "Name=");
+    const string locusTagName (locus_tag || pseudo ? "locus_tag=" : "Name=");
     while (! attributes. empty ())
     {
 	    locusTag = findSplit (attributes, ';');
@@ -155,16 +159,14 @@ Gff::Gff (const string &fName)
 	      break;
 	  }
     if (! isLeft (locusTag, locusTagName))
-      throw runtime_error (errorS + "No attribute '" + locusTagName + "'");
+    	continue;
+    //throw runtime_error (errorS + "No attribute '" + locusTagName + "': " + f. line);
 	  if (contains (locusTag, ":"))
 	    { EXEC_ASSERT (isLeft (findSplit (locusTag, ':'), locusTagName)); }
 	  else
 	    findSplit (locusTag, '='); 
 	  trimPrefix (locusTag, "\"");
 	  trimSuffix (locusTag, "\"");
-	  
-	  if (contains (seqid2cdss, locusTag))
-      throw runtime_error (errorS + "Duplicate identifier: " + locusTag);    	  
 	  
     seqid2cdss [locusTag] << Cds (seqid, (size_t) start, (size_t) stop, strand == "+");
   }

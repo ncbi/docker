@@ -50,7 +50,12 @@ constexpr static double frac_delta = 1e-5;  // PAR
 
 
 
-struct Fam : Root 
+
+struct Batch;  // forward
+
+
+
+struct Fam 
 // Table PROTEUS.VF..FAM
 {
 	const Fam* parent {nullptr};
@@ -100,7 +105,7 @@ struct Fam : Root
     }
   Fam ()
     {}
-  void saveText (ostream &os) const final
+  void saveText (ostream &os) const 
     { os << hmm << " " << tc1 << " " << tc2 << " " << familyName << " " << reportable; }
 
 
@@ -124,11 +129,10 @@ struct Fam : Root
 
 
 map<string/*famId*/,const Fam*> famId2fam;
-map<string/*hmm*/,const Fam*> hmm2fam;
 
 
 
-struct HmmAlignment : Root  
+struct HmmAlignment 
 // Query: AMR HMM
 {
   string sseqid; 
@@ -140,18 +144,12 @@ struct HmmAlignment : Root
 //ali_from, ali_to ??
   
   
-  explicit HmmAlignment (const string &line)
-    {
-	    istringstream iss (line);
-	    string hmm, dummy;
-	    //                                                        --- full sequence ---  --- best 1 domain --
-	    //     target name  accession  query name     accession   E-value  score     bias     E-value  score  bias   exp reg clu  ov env dom rep inc description of target
-	    iss >> sseqid >>    dummy      >> hmm      >> dummy >>    dummy >> score1 >> dummy >> dummy >> score2;
-	    ASSERT (score1 > 0);
-	    ASSERT (score2 > 0)
-	    fam = hmm2fam [hmm];
-    }
-  void saveText (ostream &os) const final
+  HmmAlignment (const string &line,
+                const Batch &batch);
+    // Update: batch.domains
+  HmmAlignment ()
+    {}
+  void saveText (ostream &os) const 
     { os << sseqid << ' ' << score1 << ' ' << score2 << ' ' << (fam ? fam->hmm : string ()); }
       
       
@@ -206,6 +204,11 @@ public:
     size_t seqStart {0};
     size_t seqStop {0}; 
     
+
+    Domain (const string &line,
+            Batch &batch);
+      // Input: line: hmmsearch -domtable line
+	/*
     Domain (double score_arg,
             size_t hmmLen_arg,
             size_t hmmStart_arg,
@@ -225,6 +228,7 @@ public:
         ASSERT (hmmStop <= hmmLen);
         ASSERT (seqStop <= seqLen);
       }
+  */
     Domain ()
       {} 
   };
@@ -244,7 +248,7 @@ const string frameShiftS ("[frameshift]");
 
 
 
-struct BlastAlignment : Root 
+struct BlastAlignment 
 {
   // BLAST alignment
   size_t length {0}, nident {0}  // aa
@@ -305,15 +309,15 @@ struct BlastAlignment : Root
 	    ASSERT (! targetSeq. empty ());	    
 
       // refName	    
-	    product       = rfindSplit (refName, '|'); 
-	  //mutant        = false;  // str2<int> (rfindSplit (refName, '|'));  // ??
-	    mechanism     = rfindSplit (refName, '|');
-	    gene          = rfindSplit (refName, '|');  // Reportable_vw.class
-	    famId         = rfindSplit (refName, '|');  // Reportable_vw.fam
+	    product       =                     rfindSplit (refName, '|'); 
+	  //mutant        = //       str2<int> (rfindSplit (refName, '|')); // ??
+	    mechanism     =                     rfindSplit (refName, '|');
+	    gene          =                     rfindSplit (refName, '|');  // Reportable_vw.class
+	    famId         =                     rfindSplit (refName, '|');  // Reportable_vw.fam
 	    parts         = (size_t) str2<int> (rfindSplit (refName, '|'));
 	    part          = (size_t) str2<int> (rfindSplit (refName, '|'));
-	    accessionDna  = rfindSplit (refName, '|');
-	    accessionProt = rfindSplit (refName, '|');
+	    accessionDna  =                     rfindSplit (refName, '|');
+	    accessionProt =                     rfindSplit (refName, '|');
 	    gi            = str2<long> (refName);
 	    ASSERT (gi > 0);
 	    	    
@@ -327,6 +331,7 @@ struct BlastAlignment : Root
 
 	    ASSERT (targetStart != targetEnd);
 	    targetStrand = targetStart < targetEnd;  
+	    IMPLY (targetProt, targetStrand);
 	    if (! targetStrand)
 	      swap (targetStart, targetEnd);
 	      
@@ -374,7 +379,7 @@ struct BlastAlignment : Root
     { if (allele ())
         ERROR_MSG (famId + " " + gene);
     }
-  void qc () const final
+  void qc () const
     {
       if (! qc_on)
         return;
@@ -409,13 +414,14 @@ struct BlastAlignment : Root
   	    ASSERT (targetAlign_aa <= length);
 	    }
     }
-  void saveText (ostream& os) const final
+  void saveText (ostream& os) const 
     { // PD-736, PD-774, PD-780, PD-799
-      IMPLY (targetProt, ! cdsExist == cdss. empty ());  
       const string method (getMethod ());
       const string na ("NA");
       const string proteinName (refExactlyMatched () || ! gi ? product : nvl (getFam () -> familyName, na));
       ASSERT (! contains (proteinName, '\t'));
+      if (! verbose ())  // Otherwise data may be not completely prepared
+	      { IMPLY (targetProt, ! cdsExist == cdss. empty ()); }
       vector<Cds> cdss_ (cdss);
       if (cdss_. empty ())
         cdss_. push_back (Cds ());
@@ -590,7 +596,7 @@ public:
     { LESS_PART (*this, other, targetName);
       LESS_PART (*this, other, targetStart);
       LESS_PART (*this, other, famId);
-      LESS_PART (*this, other, gi);
+      LESS_PART (*this, other, accessionProt);
       return false;
     }
 //size_t lengthScore () const
@@ -609,55 +615,80 @@ public:
 
 
 
-struct ThisApplication : Application
+struct Batch
 {
-  ThisApplication ()
-    : Application ("Report AMR proteins")
-    {
-      // Input
-      addKey ("fam", "Table FAM");
-      const string blastFormat ("qseqid sseqid length nident qstart qend qlen sstart send slen sseq. qseqid format: gi|Protein accession|DNA accession|fusion part|# fusions|FAM.id|FAM.class|resistance mechanism|Product name");
-      addKey ("blastp", "blastp output in the format: " + blastFormat);  
-      addKey ("blastx", "blastx output in the format: " + blastFormat);  
-      addKey ("gff", ".gff assembly file");
-      addKey ("hmmdom", "HMM domain alignments");
-      addKey ("hmmsearch", "Output of hmmsearch");
-      addKey ("ident_min", "Min. identity to the reference protein (0..1)", "0.9");
-      addKey ("complete_cover_min", "Min. coverage of the reference protein (0..1) for a complete hit", "0.9");
-      addKey ("partial_cover_min", "Min. coverage of the reference protein (0..1) for a partial hit", "0.5");
-      addFlag ("skip_hmm_check", "Skip checking HMM for a BLAST hit");
-      // Output
-      addKey ("out", "Identifiers of the reported input proteins");
-      addFlag ("print_fam", "Print the FAM.id instead of gene symbol"); 
-      addFlag ("pseudo", "Indicate pseudo-genes in the protein name as \"" + stopCodonS + "\" or \"" + frameShiftS + "\""); 
-      // Testing
-      addFlag ("nosame", "Exclude the same reference ptotein from the BLAST output (for testing)"); 
-      addFlag ("noblast", "Exclude the BLAST output (for testing)"); 
-    }
+  // Reference input
+  map<string/*hmm*/,const Fam*> hmm2fam;
+  Fam* root {nullptr};
+    // Not delete'd in ~Batch()
 
+  // Target input
+  typedef  List<BlastAlignment>  BlastAls; 
+  typedef  List<HmmAlignment>  HmmAls;   
 
+  BlastAls blastAls;   
+  map<HmmAlignment::Pair, HmmAlignment::Domain> domains;  // Best domain  
+  HmmAls hmmAls;  
+  
+  // Output
+  BlastAls goodBlastAls; 
+  
+  
+  explicit Batch (const string &famFName)
+	  : root (new Fam ())
+	  {
+	    if (famFName. empty ())
+	    	throw runtime_error ("fam (protein family hierarchy) file is missing");
 
-  void body () const final
-  {
-    const string famFName     = getArg ("fam");
-    const string blastpFName  = getArg ("blastp");
-    const string blastxFName  = getArg ("blastx");
-    const string gffFName     = getArg ("gff");
-    const string hmmDom       = getArg ("hmmdom");
-    const string hmmsearch    = getArg ("hmmsearch");  
-                 ident_min    = str2<double> (getArg ("ident_min"));  
-                 complete_cover_min    = str2<double> (getArg ("complete_cover_min"));  
-                 partial_cover_min     = str2<double> (getArg ("partial_cover_min")); 
-    const bool skip_hmm_check = getFlag ("skip_hmm_check"); 
-    const string outFName     = getArg ("out");
-                 print_fam    = getFlag ("print_fam");
-                 reportPseudo = getFlag ("pseudo");
-    const bool nosame         = getFlag ("nosame");
-    const bool noblast        = getFlag ("noblast");
-    
-    if (famFName. empty ())
-    	throw runtime_error ("fam (protein family hierarchy) file is missing");
-    ASSERT (hmmsearch. empty () == hmmDom. empty ());
+	  	// Tree of Fam
+	  	// Pass 1  
+	    {
+	      LineInput f (famFName);  
+	  	  while (f. nextLine ())
+	  	  {
+	  	    trim (f. line);
+	      //cout << f. line << endl; 
+	  	    const string famId               (findSplit (f. line, '\t'));
+	  	    /*const string parentFamName =*/  findSplit (f. line, '\t');
+	  	    const string genesymbol          (findSplit (f. line, '\t'));
+	  	    const string hmm                 (findSplit (f. line, '\t'));
+	  	    const double tc1 = str2<double>  (findSplit (f. line, '\t'));
+	  	    const double tc2 = str2<double>  (findSplit (f. line, '\t'));
+	  	    const int reportable = str2<int> (findSplit (f. line, '\t'));
+	  	    ASSERT (   reportable == 0 
+	  	            || reportable == 1
+	  	           );
+	  	    const auto fam = new Fam (root, famId, genesymbol, hmm, tc1, tc2, f. line, reportable);
+	  	    famId2fam [famId] = fam;
+	  	    if (! fam->hmm. empty ())
+	  	      hmm2fam [fam->hmm] = fam;
+	  	  }
+	  	}
+	  	// Pass 2
+	    {
+	      LineInput f (famFName);  
+	  	  while (f. nextLine ())
+	  	  {
+	  	    trim (f. line);
+	  	  //cout << f. line << endl;  
+	  	    Fam* child = const_cast <Fam*> (famId2fam [findSplit (f. line, '\t')]);
+	  	    ASSERT (child);
+	  	    const string parentFamId (findSplit (f. line, '\t'));
+	  	    Fam* parent = nullptr;
+	  	    if (! parentFamId. empty ())
+	  	      { EXEC_ASSERT (parent = const_cast <Fam*> (famId2fam [parentFamId])); }
+	  	    child->parent = parent;
+	  	  }
+	  	}
+	  }
+	  	  
+
+	void process (bool skip_hmm_check) 
+  // Input: root, blastAls, domains, hmmAls
+	// Output: goodBlastAls
+	{
+		ASSERT (root);
+		
     if (! (ident_min >= 0 && ident_min <= 1))
     	throw runtime_error ("ident_min must be between 0 and 1");
     if (! (complete_cover_min >= 0 && complete_cover_min <= 1))
@@ -666,242 +697,15 @@ struct ThisApplication : Application
     	throw runtime_error ("partial_cover_min must be between 0 and 1");
     if (partial_cover_min > complete_cover_min)
     	throw runtime_error ("partial_cover_min msut be less than or equal to complete_cover_min");
-    
-    
-    cdsExist =    ! blastxFName. empty ()
-               || ! gffFName. empty ();
 
-  
-    typedef  List<BlastAlignment>  BlastAls; 
-    typedef  List<HmmAlignment>  HmmAls; 
-  
-  
-    // Partial target protein sequences ??
-    // Fusion proteins, see PD-283 ??
-    
-    
-    //////////////////////////////////// Input /////////////////////////////////////
-
-  #if 0
-    map<string/*locusTag*/, Set<Cds> > locusTag2cdss; 
-    if (! gffFName. empty ())
-    {
-      LineInput f (gffFName /*, 100 * 1024, 1*/);
-      while (f. nextLine ())
-      {
-      	// https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
-  	    trim (f. line);
-  	    replace (f. line, ' ', '_');  // to use '\t' as delimiter
-  	    if (   f. line. empty () 
-  	        || f. line [0] == '#'
-  	       )
-  	      continue;
-  	    istringstream iss (f. line);
-        string seqid, source, type, score /*real number*/, strand, phase /*frame*/, attributes;
-        size_t start, stop;
-  	    iss >> seqid >> source >> type >> start >> stop >> score >> strand >> phase >> attributes;
-  	    ASSERT (start >= 1);
-  	    start--;
-  	    if (contains (seqid, ":"))
-  	      findSplit (seqid, ':');  // = project_id
-  	    if (   type != "Cds"
-  	        && type != "gene"
-  	       )
-  	      continue;
-  	      
-  	    ASSERT (start <= stop);
-  	    ASSERT (   strand == "+" 
-  	            || strand == "-"
-  	           );
-  	           
-  	    const bool pseudo = contains (attributes, "pseudo=true");
-  	    if (pseudo && type == "Cds")  // reportPseudo ??
-  	      continue;
-  
-  	    string locusTag;
-  	    const string locusTagName (pseudo ? "locus_tag=" : "Name=");
-  	    while (! attributes. empty ())
-  	    {
-    	    locusTag = findSplit (attributes, ';');
-    	    while (trimPrefix (locusTag, "_"));  // trim leading spaces
-    	    if (isLeft (locusTag, locusTagName))
-    	      break;
-    	  }
-   	    if (! isLeft (locusTag, locusTagName))
-   	      ERROR_MSG ("No locus tag in " + gffFName + ", line " + toString (f. lineNum));    	  
-    	  if (contains (locusTag, ":"))
-    	    { EXEC_ASSERT (isLeft (findSplit (locusTag, ':'), locusTagName)); }
-    	  else
-    	    findSplit (locusTag, '='); 
-    	  trimPrefix (locusTag, "\"");
-    	  trimSuffix (locusTag, "\"");
-    	  
-  	    locusTag2cdss [locusTag] << Cds (seqid, start, stop, strand == "+");
-  	  }
-    }
-  #else
-    const Gff gff (gffFName);
-  #endif
-  
-  
-  	auto root = new Fam ();
-  	// Pass 1  
-    {
-      LineInput f (famFName);  
-  	  while (f. nextLine ())
-  	  {
-  	    trim (f. line);
-      //cout << f. line << endl; 
-  	    const string famId               (findSplit (f. line, '\t'));
-  	    /*const string parentFamName =*/  findSplit (f. line, '\t');
-  	    const string genesymbol          (findSplit (f. line, '\t'));
-  	    const string hmm                 (findSplit (f. line, '\t'));
-  	    const double tc1 = str2<double>  (findSplit (f. line, '\t'));
-  	    const double tc2 = str2<double>  (findSplit (f. line, '\t'));
-  	    const int reportable = str2<int> (findSplit (f. line, '\t'));
-  	    ASSERT (   reportable == 0 
-  	            || reportable == 1
-  	           );
-  	    auto fam = new Fam (root, famId, genesymbol, hmm, tc1, tc2, f. line, reportable);
-  	    famId2fam [famId] = fam;
-  	    if (! fam->hmm. empty ())
-  	      hmm2fam [fam->hmm] = fam;
-  	  }
-  	}
-  	// Pass 2
-    {
-      LineInput f (famFName);  
-  	  while (f. nextLine ())
-  	  {
-  	    trim (f. line);
-  	  //cout << f. line << endl;  
-  	    Fam* child = const_cast <Fam*> (famId2fam [findSplit (f. line, '\t')]);
-  	    ASSERT (child);
-  	    const string parentFamId (findSplit (f. line, '\t'));
-  	    Fam* parent = nullptr;
-  	    if (! parentFamId. empty ())
-  	      { EXEC_ASSERT (parent = const_cast <Fam*> (famId2fam [parentFamId])); }
-  	    child->parent = parent;
-  	  }
-  	}
-    
-  
-  	// BlastAlignment::good()
-    BlastAls blastAls;   
-    if (! noblast)
-    {
-      if (! blastpFName. empty ())
-      {
-        LineInput f (blastpFName);
-    	  while (f. nextLine ())
-    	  {
-    	    { 
-    	      Unverbose unv;
-    	      if (verbose ())
-    	        cout << f. line << endl;  
-    	    }
-    	    BlastAlignment al (f. line, true);
-    	    al. qc ();  
-    	    if (nosame && toString (al. gi) == al. targetName)
-    	      continue;
-    	    if (al. good ())
-    	      blastAls << al;
-    	    else
-      	    { ASSERT (! al. refExactlyMatched ()); }
-    	  }
-    	}
-
-      if (! blastxFName. empty ())
-      {
-        LineInput f (blastxFName);
-    	  while (f. nextLine ())
-    	  {
-    	    { 
-    	      Unverbose unv;
-    	      if (verbose ())
-    	        cout << f. line << endl;  
-    	    }
-    	    BlastAlignment al (f. line, false);
-    	    al. qc ();  
-    	    if (nosame && toString (al. gi) == al. targetName)
-    	      continue;
-    	    if (al. good ())
-    	      blastAls << al;
-    	    else
-      	    { ASSERT (! al. refExactlyMatched ()); }
-    	  }
-    	}
-    }
-  	if (verbose ())
-  	  cout << "# Good Blasts: " << blastAls. size () << endl;
-  	
-  
-    map<HmmAlignment::Pair, HmmAlignment::Domain> domains;  // Best domain
-    if (! hmmDom. empty ())
-    {
-      LineInput f (hmmDom);
-  	  while (f. nextLine ())
-  	  {
-  	    trim (f. line);
-  	    if (   f. line. empty () 
-  	        || f. line [0] == '#'
-  	       )
-  	      continue;
-  	  //cout << f. line << endl;  
-  	    istringstream iss (f. line);
-        string  target_name, accession, query_name, query_accession;
-        size_t tlen, qlen, n, of, hmm_from, hmm_to, alignment_from, alignment_to, env_from, env_to;
-        double eValue, full_score, full_bias, cValue, i_eValue, domain_score, domain_bias, accuracy;
-  	    iss >> target_name >> accession >> tlen >> query_name >> query_accession >> qlen 
-  	        >> eValue >> full_score >> full_bias 
-  	        >> n >> of >> cValue >> i_eValue >> domain_score >> domain_bias 
-  	        >> hmm_from >> hmm_to >> alignment_from >> alignment_to >> env_from >> env_to
-  	        >> accuracy;
-  	    ASSERT (accession == "-");
-  	    hmm_from--;
-  	    alignment_from--;
-  	    env_from--;
-  	    const Fam* fam = hmm2fam [query_name];
-  	    if (! fam)
-  	      continue;
-  	    const HmmAlignment::Pair p (target_name, fam->id);
-  	    const HmmAlignment::Domain domain (domains [p]);
-  	    if (domain. score > domain_score)
-  	      continue;
-  	    domains [p] = HmmAlignment::Domain (domain_score, qlen, hmm_from, hmm_to, tlen, alignment_from, alignment_to);
-  	  //cout << p. first << " " << p. second << " " << domain_score << " " << hmm_from << " " << hmm_to << " " << alignment_from << " " << alignment_to << endl;  
-  	  }
-    }
-
-
-  	// HmmAlignment::good()
-    HmmAls hmmAls;  
-  	if (! hmmsearch. empty ())
-  	{
-      LineInput f (hmmsearch);
-  	  while (f. nextLine ())
-  	  {
-  	    if (verbose ())
-  	      cout << f. line << endl;  
-  	    if (f. line. empty () || f. line [0] == '#')
-  	      continue;
-  	    HmmAlignment hmmAl (f. line);
-  	    if (hmmAl. good ())
-  	      hmmAls << hmmAl;
-  	  }
-  	}
-  
-  
-
-    //////////////////////////////////// Processing ////////////////////////////////////
     // Filtering by ::good() has been done above
         
     // Group by targetName and process each targetName separately for speed ??    
 
     // Pareto-better()  
-    BlastAls goodBlastAls; 
 	  for (const auto& blastAl : blastAls)
     {
+    	ASSERT (blastAl. good ());
   	  bool found = false;
   	  for (const auto& goodBlastAl : goodBlastAls)
   	    if (goodBlastAl. better (blastAl))
@@ -910,33 +714,30 @@ struct ThisApplication : Application
 	        break;
 	      }
 	    if (found)
-	      continue;
-	      
+	      continue;	      
       for (Iter<BlastAls> goodIter (goodBlastAls); goodIter. next ();)
         if (blastAl. better (*goodIter))
-          goodIter. erase ();
-          
+          goodIter. erase ();          
       goodBlastAls << blastAl;	    
     }
   	if (verbose ())
   	{
   	  cout << "# Best Blasts: " << goodBlastAls. size () << endl;
   	  if (! goodBlastAls. empty ())
-  	    goodBlastAls. front (). print (cout);
+  	    goodBlastAls. front (). saveText (cout);
   	}
   #if 0
 	  for (const auto& blastAl1 : goodBlastAls)
 		  for (const auto& blastAl2 : goodBlastAls)
 		  {
 		  	cout << endl;
-		  	blastAl1. print (cout);
-		  	blastAl2. print (cout);
+		  	blastAl1. saveText (cout);
+		  	blastAl2. saveText (cout);
 		  	cout        << blastAl1. better (blastAl2) 
 		  	     << ' ' << blastAl2. better (blastAl1) 
 		  	     << endl;
 		  }
 	#endif
-
 
     // Pareto-better()  
     HmmAls goodHmmAls; 
@@ -946,6 +747,7 @@ struct ThisApplication : Application
       goodHmmAls. clear ();
   	  for (const auto& hmmAl : hmmAls)
       {
+      	ASSERT (hmmAl. good ());
     	  bool found = false;
     	  for (const auto& goodHmmAl : goodHmmAls)
     	    if (goodHmmAl. better (hmmAl, criterion))
@@ -954,12 +756,10 @@ struct ThisApplication : Application
   	        break;
   	      }
   	    if (found)
-  	      continue;
-  
+  	      continue;  
         for (Iter<HmmAls> goodIter (goodHmmAls); goodIter. next ();)
           if (hmmAl. better (*goodIter, criterion))
             goodIter. erase ();
-            
         goodHmmAls << hmmAl;
       }
       //
@@ -969,15 +769,14 @@ struct ThisApplication : Application
         cout << "Pareto-better HMMs: (Criterion " << (int) criterion << "): " << hmmAls. size () << endl;
         for (const HmmAlignment& al : hmmAls)
         {
-          al. print (cout);
+          al. saveText (cout);
           cout << endl;
         }
       }
     }
 
-
     // PD-741
-  	if (! skip_hmm_check && ! hmmsearch. empty ())
+  	if (! skip_hmm_check && ! goodHmmAls. empty ())
       for (Iter<BlastAls> iter (goodBlastAls); iter. next ();)
         if (   /*! iter->refExactlyMatched () */
         	     iter->pIdentity () < 0.98 - frac_delta  // PAR  // PD-1673
@@ -1000,7 +799,6 @@ struct ThisApplication : Application
   	if (verbose ())
   	  cout << "# Best Blasts left: " << goodBlastAls. size () << endl;
 
-
     for (Iter<HmmAls> hmmIt (goodHmmAls); hmmIt. next ();)
   	  for (const auto& blastAl : goodBlastAls)
   	    if (blastAl. better (*hmmIt))
@@ -1009,14 +807,14 @@ struct ThisApplication : Application
 	        break;
 	      }
 
-
-    ////////////////////////////////////// Output ///////////////////////////////////////
-
+    // Output 
+    
     // goodHmmAls --> goodBlastAls
   	for (const auto& hmmAl : goodHmmAls)
   	{
   	  BlastAlignment al (hmmAl);
-  	//cout << al. targetName << " " << al. gene << endl;  
+  	  if (verbose ())
+  	    cout << al. targetName << " " << al. gene << endl;  
   	  const HmmAlignment::Domain domain = domains [HmmAlignment::Pair (al. targetName, al. gene)];
   	  if (! domain. hmmLen)  
   	    continue;  // domain does not exist
@@ -1031,72 +829,332 @@ struct ThisApplication : Application
   	  al. qc ();
   	  goodBlastAls << al;
   	}
-
   
+    goodBlastAls. sort ();
+	}
+	
+	
+	
+	void report (ostream &os) const
+	// Input: goodBlastAls
+	{
+    // PD-283, PD-780
+    // Cf. BlastAlignment::saveText()
+
+    {
+	    TabDel td;
+	    td << "Target identifier";  // targetName
+	    if (cdsExist /*! gffFName. empty ()*/)  // Cf. BlastAlignment::saveText()
+	      // Contig
+	      td << "Contig id"
+	         << "Start"  // targetStart
+	         << "Stop"  // targetEnd
+	         << "Strand";  // targetStrand
+	    td << (print_fam ? "FAM.id" : "Gene symbol")
+	       << "Protein name"
+	       << "Method"
+	       << "Target length" 
+	       //
+	       << "Reference protein length"    // refLen
+	       << "% Coverage of reference protein"  // queryCoverage
+	       << "% Identity to reference protein"  
+	       << "Alignment length"  // length
+	       << "Accession of closest protein"      // accessionProt
+	       << "Name of closest protein"
+	       //
+	       << "HMM id"
+	       << "HMM description"
+	       ;
+	    os << td. str () << endl;
+	  }
+
+  	for (const auto& blastAl : goodBlastAls)
+  	  if (blastAl. getFam () -> reportable)
+    	{
+    	  blastAl. qc ();
+    	  blastAl. saveText (os);
+    	}
+	}
+
+
+
+	void printTargetIds (ostream &os) const
+	{
+		ASSERT (os. good ());
+  	for (const auto& blastAl : goodBlastAls)
+  	  if (blastAl. getFam () -> reportable)
+        os << blastAl. targetName << endl;
+	}
+};
+
+
+
+
+// HmmAlignment
+
+HmmAlignment::HmmAlignment (const string &line,
+                            const Batch &batch)
+{
+  istringstream iss (line);
+  string hmm, dummy;
+  //                                                        --- full sequence ---  --- best 1 domain --
+  //     target name  accession  query name     accession   E-value  score     bias     E-value  score  bias   exp reg clu  ov env dom rep inc description of target
+  iss >> sseqid >>    dummy      >> dummy      >> hmm >>    dummy >> score1 >> dummy >> dummy >> score2;
+  ASSERT (score1 > 0);
+  ASSERT (score2 > 0)
+  find (batch. hmm2fam, hmm, fam);
+}
+
+
+
+
+// Domain
+
+HmmAlignment::Domain::Domain (const string &line,
+                              Batch &batch)
+{
+  istringstream iss (line);
+  string target_name, accession, query_name, query_accession;
+  size_t n, of, env_from, env_to;
+  double eValue, full_score, full_bias, cValue, i_eValue, domain_bias, accuracy;
+  iss >> target_name >> accession >> seqLen 
+      >> query_name >> query_accession >> hmmLen 
+      >> eValue >> full_score >> full_bias 
+      >> n >> of >> cValue >> i_eValue >> score >> domain_bias 
+      >> hmmStart >> hmmStop 
+      >> seqStart >> seqStop 
+      >> env_from >> env_to
+      >> accuracy;
+  ASSERT (accession == "-");
+  ASSERT (hmmStart);
+  ASSERT (seqStart);
+  ASSERT (env_from);
+  hmmStart--;
+  seqStart--;
+  env_from--;
+  ASSERT (hmmStart < hmmStop);
+  ASSERT (seqStart < seqStop);
+  ASSERT (hmmStop <= hmmLen);
+  ASSERT (seqStop <= seqLen);
+  ASSERT (full_score > 0);
+  ASSERT (n >= 1);
+  ASSERT (n <= of);
+  ASSERT (score > 0);
+
+  const Fam* fam = batch. hmm2fam [query_accession/*query_name*/];
+  if (! fam)
+    return;
+  const HmmAlignment::Pair p (target_name, fam->id);
+  const HmmAlignment::Domain domain_old (batch. domains [p]);
+  if (domain_old. score > score)
+    return;
+  batch. domains [p] = *this;
+}
+
+
+
+
+// ThisApplication
+
+struct ThisApplication : Application
+{
+  ThisApplication ()
+    : Application ("Report AMR proteins")
+    {
+      // Input
+      addKey ("fam", "Table FAM");
+      const string blastFormat ("qseqid sseqid length nident qstart qend qlen sstart send slen sseq. qseqid format: gi|Protein accession|DNA accession|fusion part|# fusions|FAM.id|FAM.class|resistance mechanism|Product name");
+      addKey ("blastp", "blastp output in the format: " + blastFormat);  
+      addKey ("blastx", "blastx output in the format: " + blastFormat);  
+      addKey ("gff", ".gff assembly file");
+      addKey ("gff_match", ".gff-FASTA matching file for \"locus_tag\": \"<FASTA id> <locus_tag>\"");
+      addKey ("hmmdom", "HMM domain alignments");
+      addKey ("hmmsearch", "Output of hmmsearch");
+      addKey ("ident_min", "Min. identity to the reference protein (0..1)", "0.9");
+      addKey ("complete_cover_min", "Min. coverage of the reference protein (0..1) for a complete hit", "0.9");
+      addKey ("partial_cover_min", "Min. coverage of the reference protein (0..1) for a partial hit", "0.5");
+      addFlag ("skip_hmm_check", "Skip checking HMM for a BLAST hit");
+      // Output
+      addKey ("out", "Identifiers of the reported input proteins");
+      addFlag ("print_fam", "Print the FAM.id instead of gene symbol"); 
+      addFlag ("pseudo", "Indicate pseudo-genes in the protein name as \"" + stopCodonS + "\" or \"" + frameShiftS + "\""); 
+      // Testing
+      addFlag ("nosame", "Exclude the same reference ptotein from the BLAST output (for testing)"); 
+      addFlag ("noblast", "Exclude the BLAST output (for testing)"); 
+    }
+
+
+
+  void body () const final
+  {
+    const string famFName      = getArg ("fam");
+    const string blastpFName   = getArg ("blastp");
+    const string blastxFName   = getArg ("blastx");
+    const string gffFName      = getArg ("gff");
+    const string gffMatchFName = getArg ("gff_match");
+    const string hmmDom        = getArg ("hmmdom");
+    const string hmmsearch     = getArg ("hmmsearch");  
+                 ident_min          = str2<double> (getArg ("ident_min"));  
+                 complete_cover_min = str2<double> (getArg ("complete_cover_min"));  
+                 partial_cover_min  = str2<double> (getArg ("partial_cover_min")); 
+    const bool skip_hmm_check  = getFlag ("skip_hmm_check"); 
+    const string outFName      = getArg ("out");
+                 print_fam     = getFlag ("print_fam");
+                 reportPseudo  = getFlag ("pseudo");
+    const bool nosame          = getFlag ("nosame");
+    const bool noblast         = getFlag ("noblast");
+    
+    ASSERT (hmmsearch. empty () == hmmDom. empty ());
+    
+    
+    cdsExist =    ! blastxFName. empty ()
+               || ! gffFName. empty ();
+
+
+    Batch batch (famFName);  
+  
+  
+    // Fusion proteins, see PD-283 ??
+    
+    
+    // Input 
+
+    // batch.blastAls
+  	// BlastAlignment::good()
+    if (! noblast)
+    {
+      if (! blastpFName. empty ())
+      {
+        LineInput f (blastpFName);
+    	  while (f. nextLine ())
+    	  {
+    	    { 
+    	      Unverbose unv;
+    	      if (verbose ())
+    	        cout << f. line << endl;  
+    	    }
+    	    const BlastAlignment al (f. line, true);
+    	    al. qc ();  
+    	    if (nosame && toString (al. gi) == al. targetName)
+    	      continue;
+    	    if (al. good ())
+    	      batch. blastAls << al;
+    	    else
+      	    { ASSERT (! al. refExactlyMatched ()); }
+    	  }
+    	}
+
+      if (! blastxFName. empty ())
+      {
+        LineInput f (blastxFName);
+    	  while (f. nextLine ())
+    	  {
+    	    { 
+    	      Unverbose unv;
+    	      if (verbose ())
+    	        cout << f. line << endl;  
+    	    }
+    	    const BlastAlignment al (f. line, false);
+    	    al. qc ();  
+    	    if (nosame && toString (al. gi) == al. targetName)
+    	      continue;
+    	    if (al. good ())
+    	      batch. blastAls << al;
+    	    else
+      	    { ASSERT (! al. refExactlyMatched ()); }
+    	  }
+    	}
+    }
+  	if (verbose ())
+  	  cout << "# Good Blasts: " << batch. blastAls. size () << endl;
+  	
+  
+    // batch.domains
+    if (! hmmDom. empty ())
+    {
+      LineInput f (hmmDom);
+  	  while (f. nextLine ())
+  	  {
+  	    trim (f. line);
+  	    if (   f. line. empty () 
+  	        || f. line [0] == '#'
+  	       )
+  	      continue;
+  	    const HmmAlignment::Domain domain (f. line, batch);
+  	  }
+    }
+
+
+    // batch.hmmAls 
+  	// HmmAlignment::good()
+  	if (! hmmsearch. empty ())  // redundant file ??
+  	{
+      LineInput f (hmmsearch);
+  	  while (f. nextLine ())
+  	  {
+  	    if (verbose ())
+  	      cout << f. line << endl;  
+  	    if (f. line. empty () || f. line [0] == '#')
+  	      continue;
+  	    const HmmAlignment hmmAl (f. line, batch);
+  	    if (hmmAl. good ())
+  	      batch. hmmAls << hmmAl;
+  	  }
+  	}
+  	if (verbose ())
+  	  cout << "# Good HMMs: " << batch. hmmAls. size () << endl;
+  
+  
+    // Output
+    batch. process (skip_hmm_check);    
+
+
+    // For Batch::report()
     if (! gffFName. empty ())
-    	for (auto& al : goodBlastAls)
+    {
+	    const Gff gff (gffFName, ! gffMatchFName. empty ());
+	    map<string/*seqid*/,string/*locusTag*/> seqId2locusTag;
+	    if (! gffMatchFName. empty ())
+	    {
+	      LineInput f (gffMatchFName);
+	  	  while (f. nextLine ())
+	  	  {
+	  	  	istringstream iss (f. line);
+	  	  	string seqId, locusTag;
+	  	  	iss >> seqId >> locusTag;
+	  	  	ASSERT (! locusTag. empty ());
+	  	  	seqId2locusTag [seqId] = locusTag;
+	  	  }
+	    }
+    	for (auto& al : batch. goodBlastAls)
     	  if (al. targetProt)
       	{
       	  ASSERT (al. cdss. empty ());
+      	#if 0
       	  string s (al. targetName);
       	  trimSuffix (s, "|");
-      	  const string locusTag (rfindSplit (s, '|'));
-      	#if 0
-      	  const Set<Cds>& cdss = locusTag2cdss [locusTag];
-      	  if (cdss. empty ())
-      	    ERROR_MSG ("Locus tag \"" + locusTag + "\" is misssing in .gff file. Protein name: " + al. targetName);
-      	  insertAll (al. cdss, cdss);
+      	  string locusTag (rfindSplit (s, '|'));
       	#else
+      	  string locusTag = al. targetName;
+      	#endif
+      	  if (! gffMatchFName. empty ())
+      	  	locusTag = seqId2locusTag [locusTag];
       	  if (const Set<Cds>* cdss = findPtr (gff. seqid2cdss, locusTag))
 	      	  insertAll (al. cdss, *cdss);
       	  else
       	    throw runtime_error ("Locus tag \"" + locusTag + "\" is misssing in .gff file. Protein name: " + al. targetName);
-      	#endif
       	  al. qc ();
       	}
+    }
     
     
-    goodBlastAls. sort ();
-  
-  
-    // PD-283, PD-780
-    // Cf. BlastAlignment::saveText()
-    TabDel td;
-    td << "Target identifier";  // targetName
-    if (cdsExist /*! gffFName. empty ()*/)  // Cf. BlastAlignment::saveText()
-      // Contig
-      td << "Contig id"
-         << "Start"  // targetStart
-         << "Stop"  // targetEnd
-         << "Strand";  // targetStrand
-    td << (print_fam ? "FAM.id" : "Gene symbol")
-       << "Protein name"
-       << "Method"
-       << "Target length" 
-       //
-       << "Reference protein length"    // refLen
-       << "% Coverage of reference protein"  // queryCoverage
-       << "% Identity to reference protein"  
-       << "Alignment length"  // length
-       << "Accession of closest protein"      // accessionProt
-       << "Name of closest protein"
-       //
-       << "HMM id"
-       << "HMM description"
-       ;
+    batch. report (cout);
+
+
+    if (! outFName. empty ())
     {
-      OFStream ofs;
-      if (! outFName. empty ())
-        ofs. open (string (), outFName, string ());
-      cout << td. str () << endl;
-    	for (const auto& blastAl : goodBlastAls)
-    	  if (blastAl. getFam () -> reportable)
-      	{
-      	  blastAl. qc ();
-      	  blastAl. print (cout);
-          if (! outFName. empty ())
-            ofs << blastAl. targetName << endl;
-      	}
+	    OFStream ofs (outFName);
+      batch. printTargetIds (ofs);
     }
   }
 };

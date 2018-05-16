@@ -60,6 +60,8 @@ struct Cds
   Cds ()
     {} 
     
+  void print (ostream &os) const
+    { os << contig << ' ' << start << ' ' << stop << ' ' << strand << endl; }
   bool operator< (const Cds& other) const;
 };
 
@@ -71,7 +73,8 @@ struct Gff : Root
 {	
   map<string, Set<Cds> > seqid2cdss; 
 
-  explicit Gff (const string &fName);
+  Gff (const string &fName,
+       bool locus_tag);
     // Input: fName may be empty
 };
 

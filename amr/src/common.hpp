@@ -2160,21 +2160,24 @@ public:
 
 // OFStream
 
-struct OFStream : ofstream, Nocopy
+struct OFStream : ofstream
 {
 	OFStream ()
 	  {}
 	OFStream (const string &dirName,
-	          const string &pathName,
+	          const string &fileName,
 	          const string &extension)
-	  { open (dirName, pathName, extension); }
+	  { open (dirName, fileName, extension); }
 	explicit OFStream (const string &pathName)
 	  { open ("", pathName, ""); }
+
+
 	void open (const string &dirName,
-	           const string &pathName,
+	           const string &fileName,
 	           const string &extension);
-	  // Input: !pathName.empty()
+	  // Input: !fileName.empty()
 };
+
 
 
 
@@ -2661,7 +2664,7 @@ protected:
       addFlag ("noprogress", "Turn off progress printout");
       addFlag ("profile", "Use chronometers to profile");
       addKey ("json", "Output file in Json format");
-      addKey ("log", "Error log file, deleted on finishing the application");
+      addKey ("log", "Error log file, appended");
     }
     // To invoke: addKey(), addFlag(), addPositional()
   // Command-line parameters
