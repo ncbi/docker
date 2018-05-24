@@ -29,7 +29,7 @@ RUN make install
 WORKDIR /root/
 COPY src src
 WORKDIR src
-RUN make
+RUN make clean && make
 
 FROM centos:7
 
