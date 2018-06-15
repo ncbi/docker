@@ -59,7 +59,11 @@ endif
 
 set parse_deflines = ""
 #if (??)  set parse_deflines = -parse_deflines
-(/usr/bin/blastp  -task blastp-fast  -db $AMRDir/AMRProt  -query $1  -show_gis  -word_size 6  -threshold 21  -evalue 1e-20  -comp_based_stats 0  -num_threads 8  $parse_deflines  -outfmt '6 qseqid sseqid length nident qstart qend qlen sstart send slen qseq' > $tmp.blastp) >& $tmp.err
+(/usr/bin/blastp  -task blastp-fast  -db $AMRDir/AMRProt  -query $1  -show_gis  -word_size 6  -threshold 21  -evalue 1e-20  -comp_based_stats 0  \
+  -num_threads 8  $parse_deflines  \
+  -outfmt '6 qseqid sseqid length nident qstart qend qlen sstart send slen qseq' \
+  > $tmp.blastp) \
+  >& $tmp.err
 if ($?) goto quit
 # PD-726, SB-1643
 if ($DEBUG)  cp $tmp.blastp blastp.out   

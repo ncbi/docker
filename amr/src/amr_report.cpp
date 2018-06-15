@@ -208,27 +208,6 @@ public:
     Domain (const string &line,
             Batch &batch);
       // Input: line: hmmsearch -domtable line
-	/*
-    Domain (double score_arg,
-            size_t hmmLen_arg,
-            size_t hmmStart_arg,
-            size_t hmmStop_arg,
-            size_t seqLen_arg,
-            size_t seqStart_arg,
-            size_t seqStop_arg)
-      : score (score_arg)
-      , hmmLen (hmmLen_arg)
-      , hmmStart (hmmStart_arg)
-      , hmmStop (hmmStop_arg)
-      , seqLen (seqLen_arg)
-      , seqStart (seqStart_arg)
-      , seqStop (seqStop_arg)
-      { ASSERT (hmmStart < hmmStop);
-        ASSERT (seqStart < seqStop);
-        ASSERT (hmmStop <= hmmLen);
-        ASSERT (seqStop <= seqLen);
-      }
-  */
     Domain ()
       {} 
   };
@@ -421,7 +400,11 @@ struct BlastAlignment
       const string proteinName (refExactlyMatched () || ! gi ? product : nvl (getFam () -> familyName, na));
       ASSERT (! contains (proteinName, '\t'));
       if (! verbose ())  // Otherwise data may be not completely prepared
-	      { IMPLY (targetProt, ! cdsExist == cdss. empty ()); }
+	      if (targetProt && ! (! cdsExist == cdss. empty ()))
+	      {
+	      	cout << endl << targetName << '!' << endl;
+	      	ERROR;
+	      }
       vector<Cds> cdss_ (cdss);
       if (cdss_. empty ())
         cdss_. push_back (Cds ());
@@ -430,8 +413,8 @@ struct BlastAlignment
         TabDel td (2, false);
       //if (targetProt)
           td << targetName;
-        if (cdsExist /*! (gffFName. empty ())*/)
-          td << (cds. contig. empty () ? targetName : cds. contig)
+        if (cdsExist)
+          td << (cds. contig. empty () ? targetName  : cds. contig)
              << (cds. contig. empty () ? targetStart : cds. start) + 1
              << (cds. contig. empty () ? targetEnd   : cds. stop)
              << (cds. contig. empty () ? (/*refStrand*/ targetStrand ? '+' : '-') : (cds. strand ? '+' : '-'));
@@ -467,6 +450,13 @@ struct BlastAlignment
           td << na
              << na;
           ASSERT (method != "HMM");
+        }
+        if (cdsExist)
+        {
+          if (cds. crossOriginSeqLen) 
+            td << cds. crossOriginSeqLen;
+          else 
+            td << na;        	
         }
         os << td. str () << endl;
       }
@@ -842,9 +832,10 @@ struct Batch
     // Cf. BlastAlignment::saveText()
 
     {
+    	// Cf. BlastAlignment::saveText()
 	    TabDel td;
 	    td << "Target identifier";  // targetName
-	    if (cdsExist /*! gffFName. empty ()*/)  // Cf. BlastAlignment::saveText()
+	    if (cdsExist)  
 	      // Contig
 	      td << "Contig id"
 	         << "Start"  // targetStart
@@ -855,16 +846,18 @@ struct Batch
 	       << "Method"
 	       << "Target length" 
 	       //
-	       << "Reference protein length"    // refLen
+	       << "Reference protein length"         // refLen
 	       << "% Coverage of reference protein"  // queryCoverage
 	       << "% Identity to reference protein"  
-	       << "Alignment length"  // length
-	       << "Accession of closest protein"      // accessionProt
+	       << "Alignment length"                 // length
+	       << "Accession of closest protein"     // accessionProt
 	       << "Name of closest protein"
 	       //
 	       << "HMM id"
 	       << "HMM description"
 	       ;
+      if (cdsExist)
+      	 td << "Cross-origin length";
 	    os << td. str () << endl;
 	  }
 
@@ -981,6 +974,9 @@ struct ThisApplication : Application
       // Testing
       addFlag ("nosame", "Exclude the same reference ptotein from the BLAST output (for testing)"); 
       addFlag ("noblast", "Exclude the BLAST output (for testing)"); 
+    #ifdef SVN_REV
+      addFlag ("version", "Print the version and exit");
+    #endif
     }
 
 
@@ -1003,9 +999,20 @@ struct ThisApplication : Application
                  reportPseudo  = getFlag ("pseudo");
     const bool nosame          = getFlag ("nosame");
     const bool noblast         = getFlag ("noblast");
+  #ifdef SVN_REV
+    const bool version         = getFlag ("version");
+  #endif
     
     ASSERT (hmmsearch. empty () == hmmDom. empty ());
     
+    
+  #ifdef SVN_REV
+    if (version) 
+    {
+      cout << "version: " << SVN_REV << endl;
+      exit(1);
+    }    
+  #endif
     
     cdsExist =    ! blastxFName. empty ()
                || ! gffFName. empty ();

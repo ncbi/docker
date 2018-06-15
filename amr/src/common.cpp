@@ -53,6 +53,7 @@ namespace Common_sp
 
 bool Chronometer::enabled = false;
 bool qc_on = false;
+size_t threads_max = 1;
 
 vector<string> programArgs;
 string programName;
@@ -1563,7 +1564,6 @@ JsonMap* jRoot = nullptr;
 // Offset
 
 size_t Offset::size = 0;
-const size_t Offset::delta = 2;
 
 
 
@@ -1835,6 +1835,10 @@ int Application::run (int argc,
   		Progress::disable ();
   	if (getFlag ("profile"))
   		Chronometer::enabled = true;
+  			
+  	threads_max = str2<size_t> (getArg ("threads"));
+  	if (! threads_max)
+  		throw runtime_error ("Number of threads cannot be 0");
   
   	const string jsonFName = getArg ("json");
   	ASSERT (! jRoot);

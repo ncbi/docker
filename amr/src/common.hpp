@@ -71,6 +71,7 @@
 #include <iomanip>
 #include <memory>
 #include <algorithm>
+#include <thread>
 
 
 
@@ -85,6 +86,7 @@ bool initCommon ();
   // Invoked automaticallly
 
 extern bool qc_on;
+extern size_t threads_max;
 
 
 extern vector<string> programArgs;
@@ -253,6 +255,10 @@ template <typename T>
 template <typename T> 
   inline bool minimize (T &a, T b)
     { if (a > b) { a = b; return true; } return false; }
+    	
+template <typename T>
+  inline T difference (T a, T b)
+    { if (a > b) return a - b; return b - a; }
 
 template <typename T /*:number*/> 
   inline bool between (T x, T low, T high)
@@ -509,6 +515,38 @@ template <typename T>
 
 
 
+template <typename Func, typename... Args>
+  void runThreads (const Func& func,
+                   size_t i_max,
+                   Args&&... args)
+  // Input: func (from, to, args...)
+  // Optimial thread_num minimizes (Time_SingleCPU/thread_num + Time_openCloseThread * (thread_num - 1)), which is sqrt(Time_SingleCPU/Time_openCloseThread)
+  {
+  	ASSERT (threads_max >= 1);
+		size_t chunk = max<size_t> (1, i_max / threads_max);
+		if (chunk * threads_max < i_max)
+			chunk++;
+		ASSERT (chunk * threads_max >= i_max);
+	  vector<thread> threads;  threads. reserve (threads_max);
+		FFOR (size_t, tn, threads_max)
+	  {
+	    const size_t from = tn * chunk;
+	  	if (from >= i_max)
+	  		break;
+	    const size_t to = from + chunk;
+	    if (to >= i_max)
+	    {
+	    	func (from, i_max, forward<Args>(args)...);
+	    	break;
+	    }
+		  threads. push_back (thread (func, from, to, forward<Args>(args)...));
+		}
+		for (auto& t : threads)  
+			t. join ();
+  }
+
+
+
 template <typename T>
 struct List : list<T>
 {
@@ -629,7 +667,8 @@ template <typename T>
 
 template <typename T>
   T str2 (const string &s)
-    { T i;
+    { static_assert (numeric_limits<T>::max() > 256, "str2 does not work on chars");
+    	T i;
       istringstream iss (s);
       iss >> i;
       if (   Common_sp::strBlank (s)
@@ -1322,18 +1361,21 @@ public:
     }
   bool isUniq () const
     { return findDuplicate () == NO_INDEX; }
-  void uniq ()
-    { if (P::size () <= 1)
-        return;
-      size_t j = 1;  
-      FOR_START (size_t, i, 1, P::size ())
-        if (! ((*this) [i] == (*this) [i - 1]))
-        { if (j != i)
-            (*this) [j] = (*this) [i];
-          j++;
-        }
-      P::resize (j);
-    }
+  template <typename Equal /*bool equal (const T &a, const T &b)*/>
+	  void uniq (const Equal &equal)
+	    { if (P::size () <= 1)
+	        return;
+	      size_t j = 1;  
+	      FOR_START (size_t, i, 1, P::size ())
+	        if (! equal ((*this) [i], (*this) [i - 1]))
+	        { if (j != i)
+	            (*this) [j] = (*this) [i];
+	          j++;
+	        }
+	      P::resize (j);
+	    }
+	void uniq ()
+	  { uniq ([] (const T& a, const T& b) { return a == b; }); }
   size_t getIntersectSize (const Vector<T> &other) const
     // Input: *this, vec: unique
     { if (other. empty ())
@@ -1352,6 +1394,15 @@ public:
           n++;
       }
       return n;
+    }
+
+  bool operator< (const Vector<T> &other) const
+    // Lexicographic comparison
+    { FFOR (size_t, i, std::min (P::size (), other. size ()))
+    	{ if (P::operator[] (i) < other [i]) return true;
+    		if (other [i] < P::operator[] (i)) return false;
+      }
+      return P::size () < other. size ();
     }
 };
 
@@ -1933,6 +1984,14 @@ struct LineInput : Input
 	bool nextLine ();
   	// Output: eof, line
   	// Update: lineNum
+	bool expectPrefix (const string &prefix,
+	                   bool eofAllowed)
+		{ if (nextLine () && trimPrefix (line, prefix))
+		  	return true;  
+			if (eof && eofAllowed)
+				return false;
+		  throw runtime_error ("No \"" + prefix + "\"");
+		}
 	string getString ()
 	  { string s; 
 	  	while (nextLine ())
@@ -2500,12 +2559,14 @@ extern JsonMap* jRoot;
 
 //
 
-struct Offset
+struct Offset 
+// Linked to the ostream os
+// Not thread-safe
 {
 private:
 	static size_t size;
 public:
-	static const size_t delta;
+	static constexpr size_t delta = 2;
 
 	Offset ()
   	{ size += delta; }
@@ -2663,6 +2724,7 @@ protected:
       addKey ("verbose", "Level of verbosity", "0");
       addFlag ("noprogress", "Turn off progress printout");
       addFlag ("profile", "Use chronometers to profile");
+      addKey ("threads", "Max. number of threads", "1");
       addKey ("json", "Output file in Json format");
       addKey ("log", "Error log file, appended");
     }

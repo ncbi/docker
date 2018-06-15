@@ -111,11 +111,11 @@ struct ThisApplication : Application
 	    	  	if (aa)
 	    	  	{
 		    	  	if (! charInSet (c, "acdefghiklmnpqrstvwyxbzjuoACDEFGHIKLMNPQRSTVWYXBZJUO*"))
-		    	  		throw runtime_error (errorS + "Wrong amino acid character " + c);
+		    	  		throw runtime_error (errorS + "Wrong amino acid character: '" + c + "'");
 		    	  }
 	    	  	else
 		    	  	if (! charInSet (c, "acgtbdhkmnrsvwyACGTBDHKMNRSVWY"))
-		    	  		throw runtime_error (errorS + "Wrong nucleotide character: " + c);
+		    	  		throw runtime_error (errorS + "Wrong nucleotide character: '" + c + "'");
     	}
     	first = false;
 	  }

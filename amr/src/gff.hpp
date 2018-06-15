@@ -52,16 +52,20 @@ struct Cds
   size_t start {0};
   size_t stop {0};
   bool strand {false};
+  size_t crossOriginSeqLen {0};
+    // !0 => cross origin
+    // To be set externally
   
   Cds (const string &contig_arg,
        size_t start_arg,
        size_t stop_arg,
-       bool strand_arg);
+       bool strand_arg,
+       size_t crossOriginSeqLen);
   Cds ()
     {} 
     
   void print (ostream &os) const
-    { os << contig << ' ' << start << ' ' << stop << ' ' << strand << endl; }
+    { os << contig << ' ' << start << ' ' << stop << ' ' << strand << ' ' << crossOriginSeqLen << endl; }
   bool operator< (const Cds& other) const;
 };
 

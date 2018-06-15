@@ -7,7 +7,7 @@ if ($# != 5) then
   echo "#1: DNA sequence file"
   echo "#2: Genetic code of DNA"
   echo "#3: Min. identity to the reference protein (0..1)"
-  echo "#4: Min. coverage of the reference protein (0.5..1)"
+  echo "#4: Min. coverage of the reference protein (0.5..1) to report a match as complete"
   echo "#5: Directory with AMR data files; '' - $AMRDir_def"
   exit 1
 endif

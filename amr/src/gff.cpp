@@ -50,13 +50,21 @@ namespace GFF_sp
 Cds::Cds (const string &contig_arg,
 				  size_t start_arg,
 				  size_t stop_arg,
-				  bool strand_arg)
+				  bool strand_arg,
+          size_t crossOriginSeqLen_arg)
 : contig (contig_arg)
 , start (start_arg)
 , stop (stop_arg)
 , strand (strand_arg)
+, crossOriginSeqLen (crossOriginSeqLen_arg)
 { 
 	ASSERT (! contig. empty ());
+	if (crossOriginSeqLen)
+	{
+		swap (start, stop);
+		start--;
+		stop++;
+	}
   ASSERT (start < stop); 
 }
   
@@ -68,6 +76,7 @@ bool Cds::operator< (const Cds& other) const
   LESS_PART (*this, other, start)
   LESS_PART (*this, other, stop)
   LESS_PART (*this, other, strand)
+  LESS_PART (*this, other, crossOriginSeqLen);
   return false;
 }
 
@@ -124,6 +133,8 @@ Gff::Gff (const string &fName,
       {
 	    	throw runtime_error (errorS + "Cannot read start");
       }
+    if (start <= 0)
+    	throw runtime_error (errorS + "start should be >= 1");
       
     long stop = -1;
     try { stop = str2<long> (stopS); }
@@ -131,12 +142,13 @@ Gff::Gff (const string &fName,
       {
 	    	throw runtime_error (errorS + "Cannot read stop");
       }
+    if (stop <= 0)
+    	throw runtime_error (errorS + "stop should be >= 1");
 
-    if (start <= 0)
-    	throw runtime_error (errorS + "start should be >= 1");
-    start--;
-    if (start >= stop)
-    	throw runtime_error (errorS + "start should before stop");
+    if (start > stop)
+    	throw runtime_error (errorS + "start cannot be greater than stop");
+
+    start--;    	
     	
     if (   strand != "+" 
         && strand != "-"
@@ -168,7 +180,7 @@ Gff::Gff (const string &fName,
 	  trimPrefix (locusTag, "\"");
 	  trimSuffix (locusTag, "\"");
 	  
-    seqid2cdss [locusTag] << Cds (seqid, (size_t) start, (size_t) stop, strand == "+");
+    seqid2cdss [locusTag] << Cds (seqid, (size_t) start, (size_t) stop, strand == "+", 0);
   }
 }
   

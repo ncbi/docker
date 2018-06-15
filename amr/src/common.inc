@@ -113,7 +113,7 @@
 
 
 #define LESS_PART(x,y,part)  { if ((x).part < (y).part) return true; \
-                               if ((x).part > (y).part) return false; }
+                               if ((y).part < (x).part) return false; }
 
 
 
