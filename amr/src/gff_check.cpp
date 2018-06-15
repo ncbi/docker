@@ -68,8 +68,9 @@ struct ThisApplication : Application
     const string fastaName = getArg ("fasta");
     const string locus_tagFName  = getArg ("locus_tag");
     
-    
-    if (gffName. empty ())
+     // Limitations in CWL preclude empty filenames
+    if (gffName. empty () ||
+        string::npos != gffName.rfind("anemptystring"))
     	return;
     
 
