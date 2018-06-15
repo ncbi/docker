@@ -50,12 +50,16 @@ const string locus_tagS ("[locus_tag=");
 
 
 
+const string noFile ("emptystring");
+
+
+
 struct ThisApplication : Application
 {
   ThisApplication ()
     : Application ("Check the correctness of a .gff-file. Exit with an error if it is incorrect.")
     {
-      addPositional ("gff", ".gff-file, if an empty string then exit 0");
+      addPositional ("gff", ".gff-file, if \"" + noFile + "\" then exit 0");
       addKey ("fasta", "Protein FASTA file");
       addKey ("locus_tag", "File with matches: \"<FASTA id> <GFF id>\", where <id> is from \"" + locus_tagS + "<id>]\" in the FASTA comment and from the .gff-file");
     }
@@ -68,9 +72,8 @@ struct ThisApplication : Application
     const string fastaName = getArg ("fasta");
     const string locus_tagFName  = getArg ("locus_tag");
     
-     // Limitations in CWL preclude empty filenames
-    if (gffName. empty () ||
-        string::npos != gffName.rfind("anemptystring"))
+    
+    if (isRight (gffName, noFile))
     	return;
     
 

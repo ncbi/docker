@@ -53,8 +53,8 @@ gff_check:	$(gff_checkOBJS)
 	$(CXX) -o $@ $(gff_checkOBJS)
 
 clean:
-	-rm -f *.o
-	-rm -f amr_report fasta_check gff_check
+	rm -f *.o
+	rm -f amr_report fasta_check gff_check
 
 install:
 	cp amr_report fasta_check gff_check $(INSTALL_DIR)
