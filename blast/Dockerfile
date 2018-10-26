@@ -5,7 +5,7 @@ ARG version
 USER root
 WORKDIR /root/
 
-RUN apt-get -y -m update && apt-get install -y build-essential wget libidn11
+RUN apt-get -y -m update && apt-get install -y build-essential wget libidn11 libnet-perl liblist-moreutils-perl perl-doc
 
 RUN wget ftp://ftp.ncbi.nlm.nih.gov/blast/executables/LATEST/ncbi-blast-2.7.1+-src.tar.gz
 RUN tar xvf ncbi-blast-2.7.1+-src.tar.gz
