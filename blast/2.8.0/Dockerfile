@@ -5,9 +5,9 @@ ARG version
 USER root
 WORKDIR /root/
 
-RUN apt-get -y -m update && apt-get install -y build-essential wget libidn11 libnet-perl liblist-moreutils-perl perl-doc
+RUN apt-get -y -m update && apt-get install -y build-essential curl libidn11 libnet-perl liblist-moreutils-perl perl-doc
 
-RUN curl -q ftp://ftp.ncbi.nlm.nih.gov/blast/executables/${version}alpha/ncbi-blast-${version}-alpha+-src.tar.gz | \
+RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/${version}alpha/ncbi-blast-${version}-alpha+-src.tar.gz | \
  tar xzf - && \
  cd ncbi-blast-${version}+-src/c++ && \
  ./configure --with-optimization --with-dll --with-experimental=Int8GI --with-flat-makefile --prefix=/blast && \
@@ -22,7 +22,7 @@ COPY VERSION .
 USER root
 WORKDIR /root/
 
-RUN apt-get -y -m update && apt-get install -y libgomp1 libnet-perl liblist-moreutils-perl perl-doc
+RUN apt-get -y -m update && apt-get install -y libgomp1 libnet-perl liblist-moreutils-perl perl-doc && && -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /blast/bin /blast/lib
 COPY --from=blastbuild /root/ncbi-blast-2.7.1+-src/c++/ReleaseMT/bin /blast/bin
