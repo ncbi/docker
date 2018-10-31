@@ -1,6 +1,7 @@
 FROM ubuntu:18.04 as blastbuild
 
 ARG version
+LABEL Description="NCBI BLAST" Vendor="NCBI/NLM/NIH" Version=${version} Maintainer=camacho@ncbi.nlm.nih.gov
 
 USER root
 WORKDIR /root/
@@ -28,9 +29,12 @@ RUN mkdir -p /blast/bin /blast/lib
 COPY --from=blastbuild /root/ncbi-blast-2.7.1+-src/c++/ReleaseMT/bin /blast/bin
 COPY --from=blastbuild /root/ncbi-blast-2.7.1+-src/c++/ReleaseMT/lib /blast/lib
 
-WORKDIR /blast
-ENV BLASTDB /blast/blastdb
+RUN mkdir -p /blast/blastdb /blast/blastdb_custom
+RUN sed -i '$ a BLASTDB=/blast/blastdb:/blast/blastdb_custom' /etc/environment
+ENV BLASTDB /blast/blastdb:/blast/blastdb_custom
 ENV PATH="/blast/bin:${PATH}"
+
+WORKDIR /blast
 
 CMD ["/bin/bash"]
 
