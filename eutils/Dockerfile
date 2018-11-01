@@ -5,15 +5,16 @@ LABEL Description="NCBI EDirect" Vendor="NCBI/NLM/NIH" Version=${version} Mainta
 USER root
 WORKDIR /usr/local/ncbi
 
-RUN apt-get -y -m update && apt-get install -y curl libnet-perl && rm -rf /var/lib/apt/lists/*
+RUN apt-get -y -m update && apt-get install -y curl cpanminus libxml-simple-perl libwww-perl libnet-perl && rm -rf /var/lib/apt/lists/*
 
 RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/entrez/entrezdirect/edirect.tar.gz | \
  tar xzf - && \
+ cpanm HTML::Entities && \
  edirect/setup.sh
 
-COPY installconfirm /usr/local/ncbi/bin
+COPY installconfirm /usr/local/ncbi/edirect/
 
-ENV PATH="/usr/local/ncbi/edirect/bin:${PATH}"
+ENV PATH="/usr/local/ncbi/edirect:${PATH}"
 
 WORKDIR /root
 
