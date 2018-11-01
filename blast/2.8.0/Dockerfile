@@ -23,11 +23,11 @@ COPY VERSION .
 USER root
 WORKDIR /root/
 
-RUN apt-get -y -m update && apt-get install -y libgomp1 libnet-perl liblist-moreutils-perl perl-doc && -rf /var/lib/apt/lists/*
+RUN apt-get -y -m update && apt-get install -y libgomp1 libnet-perl liblist-moreutils-perl perl-doc && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /blast/bin /blast/lib
-COPY --from=blastbuild /root/ncbi-blast-2.7.1+-src/c++/ReleaseMT/bin /blast/bin
-COPY --from=blastbuild /root/ncbi-blast-2.7.1+-src/c++/ReleaseMT/lib /blast/lib
+COPY --from=blastbuild /root/ncbi-blast-$[version}+-src/c++/ReleaseMT/bin /blast/bin
+COPY --from=blastbuild /root/ncbi-blast-$[version}+-src/c++/ReleaseMT/lib /blast/lib
 
 RUN mkdir -p /blast/blastdb /blast/blastdb_custom
 RUN sed -i '$ a BLASTDB=/blast/blastdb:/blast/blastdb_custom' /etc/environment
