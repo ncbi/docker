@@ -5,16 +5,14 @@ ARG version
 USER root
 WORKDIR /root/
 
-#RUN apt-get -y -m update && apt-get install -y build-essential wget libidn11
-RUN apt-get -y -m update && apt-get install -y build-essential curl
+RUN apt-get -y -m update && apt-get install -y build-essential curl libxml2-dev
 
 RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/executables/magicblast/${version}/ncbi-magicblast-${version}-src.tar.gz | \
  tar zxf - && \
  cd ncbi-magicblast-${version}-src/c++ && \
  ./configure --with-dll --with-experimental=Int8GI --with-flat-makefile --prefix=/blast && \
- make
-#RUN cat config.log
-#W#ORKDIR /root/ncbi-blast-2.7.1+-src/c++/ReleaseMT/build
+ cd ReleaseMT/build && \
+ make -j 32 -f Makefile.flat magicblast.exe
 
 FROM ubuntu:18.04
 ARG version
