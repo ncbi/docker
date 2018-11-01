@@ -1,0 +1,20 @@
+***********************
+esearch version:
+9.70
+xtract version:
+
+Unable to locate xtract executable. Please execute the following:
+
+  ftp-cp ftp.ncbi.nlm.nih.gov /entrez/entrezdirect xtract.Darwin.gz
+  gunzip -f xtract.Darwin.gz
+  chmod +x xtract.Darwin
+
+EDirect install status:
+
+Unable to locate xtract executable. Please execute the following:
+
+  ftp-cp ftp.ncbi.nlm.nih.gov /entrez/entrezdirect xtract.Darwin.gz
+  gunzip -f xtract.Darwin.gz
+  chmod +x xtract.Darwin
+
+***********************
