@@ -25,6 +25,7 @@ WORKDIR /root/
 RUN apt-get -y -m update && apt-get install -y libxml2-dev
 
 RUN mkdir -p /blast/bin /blast/lib
+COPY --from=0 /root/ncbi-magicblast-${version}-src/c++/local/ncbi-vdb-*/lib64 /blast/lib
 COPY --from=0 /root/ncbi-magicblast-${version}-src/c++/ReleaseMT/lib /blast/lib
 COPY --from=0 /root/ncbi-magicblast-${version}-src/c++/ReleaseMT/bin/magicblast /blast/bin
 
