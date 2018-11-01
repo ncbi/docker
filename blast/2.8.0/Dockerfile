@@ -7,7 +7,7 @@ LABEL Description="NCBI BLAST" Vendor="NCBI/NLM/NIH" Version=${version} Maintain
 USER root
 WORKDIR /root/
 
-RUN apt-get -y -m update && apt-get install -y build-essential curl libidn11 libnet-perl liblist-moreutils-perl perl-doc
+RUN apt-get -y -m update && apt-get install -y build-essential curl libidn11 libnet-perl liblist-moreutils-perl perl-doc liblmdb-dev
 
 RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/${version}alpha/ncbi-blast-${version}-alpha+-src.tar.gz | \
  tar xzf - && \
@@ -24,7 +24,7 @@ COPY VERSION .
 USER root
 WORKDIR /root/
 
-RUN apt-get -y -m update && apt-get install -y libgomp1 libnet-perl liblist-moreutils-perl perl-doc && rm -rf /var/lib/apt/lists/*
+RUN apt-get -y -m update && apt-get install -y libgomp1 libnet-perl liblist-moreutils-perl perl-doc liblmdb-dev && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /blast/bin /blast/lib
 COPY --from=blastbuild /root/ncbi-blast-${version}+-src/c++/ReleaseMT/bin /blast/bin
