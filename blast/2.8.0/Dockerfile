@@ -1,6 +1,7 @@
 FROM ubuntu:18.04 as blastbuild
 
 ARG version
+ARG num_procs=8
 LABEL Description="NCBI BLAST" Vendor="NCBI/NLM/NIH" Version=${version} Maintainer=camacho@ncbi.nlm.nih.gov
 
 USER root
@@ -13,7 +14,7 @@ RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/${version}alpha/
  cd ncbi-blast-${version}+-src/c++ && \
  ./configure --with-optimization --with-dll --with-experimental=Int8GI --with-flat-makefile --prefix=/blast && \
  cd ReleaseMT/build && \
- make -j 4 -f Makefile.flat blastdb_aliastool.exe blastdbcheck.exe blastdbcmd.exe blast_formatter.exe blastn.exe blastp.exe blastx.exe convert2blastmask.exe deltablast.exe dustmasker.exe makeblastdb.exe makembindex.exe makeprofiledb.exe psiblast.exe rpsblast.exe rpstblastn.exe segmasker.exe tblastn.exe tblastx.exe windowmasker.exe
+ make -j ${num_procs} -f Makefile.flat blastdb_aliastool.exe blastdbcheck.exe blastdbcmd.exe blast_formatter.exe blastn.exe blastp.exe blastx.exe convert2blastmask.exe deltablast.exe dustmasker.exe makeblastdb.exe makembindex.exe makeprofiledb.exe psiblast.exe rpsblast.exe rpstblastn.exe segmasker.exe tblastn.exe tblastx.exe windowmasker.exe
 
 
 FROM ubuntu:18.04
@@ -26,8 +27,8 @@ WORKDIR /root/
 RUN apt-get -y -m update && apt-get install -y libgomp1 libnet-perl liblist-moreutils-perl perl-doc && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /blast/bin /blast/lib
-COPY --from=blastbuild /root/ncbi-blast-$[version}+-src/c++/ReleaseMT/bin /blast/bin
-COPY --from=blastbuild /root/ncbi-blast-$[version}+-src/c++/ReleaseMT/lib /blast/lib
+COPY --from=blastbuild /root/ncbi-blast-${version}+-src/c++/ReleaseMT/bin /blast/bin
+COPY --from=blastbuild /root/ncbi-blast-${version}+-src/c++/ReleaseMT/lib /blast/lib
 
 RUN mkdir -p /blast/blastdb /blast/blastdb_custom
 RUN sed -i '$ a BLASTDB=/blast/blastdb:/blast/blastdb_custom' /etc/environment
