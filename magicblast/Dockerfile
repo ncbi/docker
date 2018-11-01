@@ -1,6 +1,7 @@
 FROM ubuntu:18.04
 
 ARG version
+ARG num_procs=8
 
 USER root
 WORKDIR /root/
@@ -12,7 +13,7 @@ RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/executables/magicblast/${version}/n
  cd ncbi-magicblast-${version}-src/c++ && \
  ./configure --with-dll --with-experimental=Int8GI --with-flat-makefile --with-downloaded-vdb --prefix=/blast && \
  cd ReleaseMT/build && \
- make -j 32 -f Makefile.flat magicblast.exe
+ make -j ${num_procs} -f Makefile.flat magicblast.exe
 
 FROM ubuntu:18.04
 ARG version
