@@ -14,8 +14,6 @@ Please see examples below.
 
 ### Install NCBI-provided BLAST databases
 
-The example below uses bind mounts.
-
   ```bash
   docker run --rm -it \
     -v $BLASTDB:/blast/blastdb:rw \
@@ -26,9 +24,12 @@ The example below uses bind mounts.
 
 ### Show available BLAST databases in the $BLASTDB path on the local machine
 
-The example below uses bind mounts.
-
-  `docker run --rm -it -v $BLASTDB:/blast/blastdb:ro christiam/blast blastdbcmd -list /blast/blastdb -remove_redundant_dbs`
+  ```bash
+  docker run --rm -it \
+    -v $BLASTDB:/blast/blastdb:ro \
+    christiam/blast \
+    blastdbcmd -list /blast/blastdb -remove_redundant_dbs`
+  ```
 
 ### Use a previous version of BLAST+
 
