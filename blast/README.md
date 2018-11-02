@@ -14,7 +14,9 @@ Please see example usages below.
 
 ## Install NCBI-provided BLAST databases
 
-  `docker run --rm -it -v $BLASTDB:/blast/blastdb:rw -w /blast/blastdb christiam/blast update_blastdb.pl --decompress  --passive vector`
+  `docker run --rm -it -v $BLASTDB:/blast/blastdb:rw \
+    -w /blast/blastdb \
+    christiam/blast update_blastdb.pl --decompress  --passive vector`
 
 ## Show available BLAST databases in the $BLASTDB path on the local machine
 
