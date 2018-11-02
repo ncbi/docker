@@ -30,8 +30,6 @@ The example below uses bind mounts.
 
   `docker run --rm -it -v $BLASTDB:/blast/blastdb:ro christiam/blast blastdbcmd -list /blast/blastdb -remove_redundant_dbs`
 
-Additional versions are [available](https://hub.docker.com/r/christiam/blast/tags/) and can be accessed via tags, e.g.:
-
 ### Use a previous version of BLAST+
 
   `docker run --rm -it christiam/blast:2.7.1 blastn -version`
