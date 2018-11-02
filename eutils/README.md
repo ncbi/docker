@@ -4,9 +4,9 @@
 
 # Usage instructions
 
-  `docker run --rm -it ncbi/edirect installconfirm`
+  `docker run --rm -it christiam/edirect installconfirm`
 
-  `docker run --rm -it ncbi/edirect esearch -db nucleotide -query u00001 | efetch -format fasta`
+  `docker run --rm -it christiam/edirect esearch -db nucleotide -query u00001 | efetch -format fasta`
 
 
 [1]: https://www.ncbi.nlm.nih.gov/books/NBK179288/
