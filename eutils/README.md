@@ -6,7 +6,7 @@
 
 ### Fetch a nucleotide sequence in FASTA format
 
-  `docker run --rm -it christiam/edirect esearch -db nucleotide -query u00001 | efetch -format fasta`
+  `docker run --rm -it christiam/edirect /bin/sh -c " esearch -db nucleotide -query u00001 | efetch -format fasta"`
 
 ### Check installation
 
