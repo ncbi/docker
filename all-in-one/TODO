@@ -1,0 +1,2 @@
+Fix path in get_species_taxid for docker?
+installing edirect in $HOME does it w/o code changes. Next BLAST+ release change the code so its path includes /usr/local/bin and/or /usr/ncbi/ncbi/bin?
