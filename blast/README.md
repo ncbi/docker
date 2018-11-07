@@ -90,11 +90,45 @@ The command below mounts the `$BLASTDB` path on the local machine as `/blast/bla
   ```
 
 ## Running BLAST
-TODO: write on saving results, getting query and DB sequences. n
 
-### Interactive
+When running BLAST in a Docker container, note the mounts specified to the `docker run` command to make the input and outputs available. In the examples below, the first two mounts provide access to the BLAST databases, the third mount provides access to the query sequence(s) and the fourth mount provides a directory to save the results.
 
-### Scripts
+### Interactive BLAST
+
+One can login to the container and run commands inside the container if multiple BLAST runs will be executed. 
+
+  ```bash
+  docker run --rm -it \
+    -v $BLASTDB:/blast/blastdb:ro -v $HOME/blastdb_custom:/blast/blastdb_custom:ro \
+    -v $HOME/queries:/blast/queries:ro \
+    -v $HOME/results:/blast/results:rw \
+    christiam/blast \
+    /bin/bash
+  ```
+This will open a login shell in the container and one can run BLAST+ as if it was locally installed.
+
+### Scripted BLAST
+
+One approach to deal with this situation is to start the blast container in detached mode and execute commands on it.
+
+  ```bash
+  # Start a container named 'blast' in detached mode
+  docker run --rm -d --name blast \
+    -v $BLASTDB:/blast/blastdb:ro -v $HOME/blastdb_custom:/blast/blastdb_custom:ro \
+    -v $HOME/queries:/blast/queries:ro \
+    -v $HOME/results:/blast/results:rw \
+    christiam/blast \
+    sleep infinity
+
+  # Check the container is running
+  docker ps
+  ```
+
+To run a BLAST search in this container, one can issue the following command:
+
+  ```bash
+  docker exec blast blastn -query /blast/queries/query.fsa -db vector -out /blast/results/blastn.out
+  ```
 
 ### Show the latest version of BLAST+
 
