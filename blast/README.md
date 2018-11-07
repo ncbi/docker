@@ -2,7 +2,7 @@
 
 [NCBI BLAST+](http://blast.ncbi.nlm.nih.gov/) command line applications in a Docker image.
 
-# Supported tags and respective Dockerfile links
+## Supported tags and respective Dockerfile links
 * [2.8.0](https://github.com/christiam/docker/blob/support-more-versions/blast/2.8.0/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777/#_Blast_ReleaseNotes_BLAST_2_8_0_March_28_)
 * [2.7.1](https://github.com/christiam/docker/blob/support-more-versions/blast/2.7.1/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777/#_Blast_ReleaseNotes_BLAST_2_7_1_October_2_)
 
@@ -34,17 +34,25 @@ The Basic Local Alignment Search Tool (BLAST) finds regions of local similarity 
 
 ![logo](https://www.nlm.nih.gov/about/logos_nlm_photos/large-White_ncbi_logo_200h.png)
 
-# How to use this image
+# How to use this image?
 
-With this Docker image you can run BLAST+ in an isolated container, facilitating reproducibility of BLAST results. As a user of this Docker image, you are expected to provide BLAST databases and query sequence(s) to run BLAST as well as a location outside the container to save the results. One way to accomplish this is to use [Docker bind mounts](https://docs.docker.com/storage/bind-mounts/#start-a-container-with-a-bind-mount).
+With this Docker image you can run BLAST+ in an isolated container, facilitating reproducibility of BLAST results. As a user of this Docker image, you are expected to provide BLAST databases and query sequence(s) to run BLAST as well as a location outside the container to save the results. 
 
-## Show the latest version of BLAST+
+## Data provisioning
 
-  `docker run --rm christiam/blast blastn -version`
+One way to provide data for the container is to make it available on the local host and use [Docker bind mounts](https://docs.docker.com/storage/bind-mounts/#start-a-container-with-a-bind-mount) to make these visible within the container. In the examples below, it is assumed that the following directories exist and are writable by the user:
 
-## Install NCBI-provided BLAST databases
+| Directory | Purpose | Notes |
+| --------- | ------  | ----- |
+| `$HOME/blastdb` | Stores NCBI provided BLAST databases | The `$BLASTDB` environment variable is an alias for this |
+| `$HOME/queries` | Stores user provided query sequence(s) | |
+| `$HOME/fasta`   | Stores user provided FASTA sequences to create BLAST database(s) | |
+| `$HOME/results` | Stores BLAST results | Mount with `rw` permissions |
+| `$HOME/blastdb_custom` | Stores user provided BLAST databases | |
 
-The `$BLASTDB` environment variable refers to an existing directory on the host machine. The following command will download and decompress the vector BLAST database.
+### Install NCBI-provided BLAST databases
+
+The `$BLASTDB` environment variable refers to an existing directory on the local host. The following command will download and decompress the vector BLAST database.
 
   ```bash
   docker run --rm \
@@ -53,8 +61,24 @@ The `$BLASTDB` environment variable refers to an existing directory on the host 
     christiam/blast \
     update_blastdb.pl --decompress  --passive vector
   ```
+### Make and install my own BLAST databases
 
-## Show available BLAST databases
+Use case: you have your own sequence data in a file called `sequences.fsa` to make a BLAST database. 
+
+  ```bash
+  docker run --rm \
+    -v $HOME/blastdb_custom:/blast/blastdb_custom:rw \
+    -v $HOME/fasta:/blast/fasta:rw \
+    -w /blast/blastdb_custom \
+    christiam/blast \
+    makeblastdb -in /blast/fasta/sequences.fsa -dbtype prot -out proteins -title 'My BLASTDB title'
+  ```
+
+### Make query sequence(s) available
+
+Download your query sequence data to the local host and make it available to the container, e.g.: use Docker `-v` option: `-v $HOME/queries:/blast/queries:ro`.
+
+### Show available BLAST databases
 
 The command below mounts the `$BLASTDB` path on the local machine as `/blast/blastdb` on the container and `blastdbcmd` shows the available BLAST databases at this location.
 
@@ -65,22 +89,20 @@ The command below mounts the `$BLASTDB` path on the local machine as `/blast/bla
     blastdbcmd -list /blast/blastdb -remove_redundant_dbs
   ```
 
-### Use a previous version of BLAST+
-
-  `docker run --rm christiam/blast:2.7.1 blastn -version`
-
-## Use cases
-
-### Data provisioning
-#### I have my queries/BLASTDB locally
-#### I have my queries/BLASTDB on GCS/S3
-TODO: set up docker volume to access data
-
-### Saving results
+## Running BLAST
+TODO: write on saving results, getting query and DB sequences. n
 
 ### Interactive
 
 ### Scripts
+
+### Show the latest version of BLAST+
+
+  `docker run --rm christiam/blast blastn -version`
+
+### Use a previous version of BLAST+
+
+  `docker run --rm christiam/blast:2.7.1 blastn -version`
 
 ## License
 
