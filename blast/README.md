@@ -30,19 +30,21 @@ Please email us at blast-help@ncbi.nlm.nih.gov.
 
 # What is NCBI BLAST?
 
-The Basic Local Alignment Search Tool (BLAST) finds regions oflocal similarity between sequences. The program compare    s nucleotide or protein sequences to sequence databases and calculates the statistical significance of matches. BLAST can be used to infer functional and evolutionary relationships between sequences as well as help identify members of gene families.
+The Basic Local Alignment Search Tool (BLAST) finds regions of local similarity between sequences. The program compares nucleotide or protein sequences to sequence databases and calculates the statistical significance of matches. BLAST can be used to infer functional and evolutionary relationships between sequences as well as help identify members of gene families.
 
 ![logo](https://www.nlm.nih.gov/about/logos_nlm_photos/large-White_ncbi_logo_200h.png)
 
-With this Docker image one can run BLAST+ in an isolated container, facilitating reproducibility of BLAST results. As a user of this Docker image, you are expected to provide BLAST databases and query sequence(s) to run BLAST as well as a location outside the container to save the results. One way to accomplish this is to use [Docker bind mounts](https://docs.docker.com/storage/bind-mounts/#start-a-container-with-a-bind-mount).
-Additional versions are [available](https://hub.docker.com/r/christiam/blast/tags/) and can be accessed via tags. Please note that we only support the last 3 versions of BLAST (FIXME).
-Please see examples below.
+# How to use this image
 
-### Show the latest version of blastn
+With this Docker image you can run BLAST+ in an isolated container, facilitating reproducibility of BLAST results. As a user of this Docker image, you are expected to provide BLAST databases and query sequence(s) to run BLAST as well as a location outside the container to save the results. One way to accomplish this is to use [Docker bind mounts](https://docs.docker.com/storage/bind-mounts/#start-a-container-with-a-bind-mount).
+
+## Show the latest version of BLAST+
 
   `docker run --rm christiam/blast blastn -version`
 
-### Install NCBI-provided BLAST databases
+## Install NCBI-provided BLAST databases
+
+The `$BLASTDB` environment variable refers to an existing directory on the host machine. The following command will download and decompress the vector BLAST database.
 
   ```bash
   docker run --rm \
@@ -52,7 +54,9 @@ Please see examples below.
     update_blastdb.pl --decompress  --passive vector
   ```
 
-### Show available BLAST databases in the $BLASTDB path on the local machine
+## Show available BLAST databases
+
+The command below mounts the `$BLASTDB` path on the local machine as `/blast/blastdb` on the container and `blastdbcmd` shows the available BLAST databases at this location.
 
   ```bash
   docker run --rm \
@@ -78,3 +82,10 @@ TODO: set up docker volume to access data
 
 ### Scripts
 
+## License
+
+View refer to the [license](https://www.ncbi.nlm.nih.gov/IEB/ToolBox/CPP_DOC/lxr/source/scripts/projects/blast/LICENSE) and [copyright](http://ncbi.github.io/blast-cloud/dev/copyright.html) information for the software contained in this image.
+
+As with all Docker images, these likely also contain other software which may be under other licenses (such as Bash, etc from the base distribution, along with any direct or indirect dependencies of the primary software being contained).
+
+As for any pre-built image usage, it is the image user's responsibility to ensure that any use of this image complies with any relevant licenses for all software contained within.
