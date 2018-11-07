@@ -10,12 +10,12 @@ Please see examples below.
 
 ### Show the latest version of blastn
 
-  `docker run --rm -it christiam/blast blastn -version`
+  `docker run --rm christiam/blast blastn -version`
 
 ### Install NCBI-provided BLAST databases
 
   ```bash
-  docker run --rm -it \
+  docker run --rm \
     -v $BLASTDB:/blast/blastdb:rw \
     -w /blast/blastdb \
     christiam/blast \
@@ -25,15 +25,15 @@ Please see examples below.
 ### Show available BLAST databases in the $BLASTDB path on the local machine
 
   ```bash
-  docker run --rm -it \
+  docker run --rm \
     -v $BLASTDB:/blast/blastdb:ro \
     christiam/blast \
-    blastdbcmd -list /blast/blastdb -remove_redundant_dbs`
+    blastdbcmd -list /blast/blastdb -remove_redundant_dbs
   ```
 
 ### Use a previous version of BLAST+
 
-  `docker run --rm -it christiam/blast:2.7.1 blastn -version`
+  `docker run --rm christiam/blast:2.7.1 blastn -version`
 
 ## Use cases
 
