@@ -1,6 +1,6 @@
 # Official NCBI EDirect docker image
 
-[Entrez Direct][1] command line applications in a Docker image.
+[Entrez Direct](https://www.ncbi.nlm.nih.gov/books/NBK179288/) command line applications in a Docker image.
 
 ## Example usage
 
@@ -12,4 +12,3 @@
 
   `docker run --rm -it christiam/edirect installconfirm`
 
-[1]: https://www.ncbi.nlm.nih.gov/books/NBK179288/
