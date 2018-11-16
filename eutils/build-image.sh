@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-USERNAME=christiam
+USERNAME=ncbi
 IMAGE=edirect
 VERSION=`cat VERSION`
 
