@@ -129,10 +129,19 @@ To run a BLAST search in this container, one can issue the following command:
   ```bash
   docker exec blast blastn -query /blast/queries/query.fsa -db vector -out /blast/results/blastn.out
   ```
+The results will be stored on the local host's `$HOME/results` directory.
 
 ### Show the latest version of BLAST+
 
-  `docker run --rm christiam/blast blastn -version`
+The two commands show two different approaches to obtain the same result:
+
+  ```bash
+  # Connect to an existing container
+  docker exec blast blastn -version
+
+  # Create and immediately remove a container image
+  docker run --rm christiam/blast blastn -version
+  ```
 
 ### Use a previous version of BLAST+
 
