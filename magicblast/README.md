@@ -6,7 +6,7 @@
 
 Example:
 
-  `docker run --rm -it -v $BLASTDB:/blast/blastdb christiam/magicblast magicblast -version`
+  `docker run --rm -it -v $BLASTDB:/blast/blastdb ncbi/magicblast magicblast -version`
 
 
-[1]: https://ncbi.github.io/magicblast/
+[1]: https://www.biorxiv.org/content/early/2018/08/13/390013

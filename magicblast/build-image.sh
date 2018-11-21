@@ -1,6 +1,6 @@
 #!/bin/bash -xe
 
-USERNAME=christiam
+USERNAME=ncbi
 IMAGE=magicblast
 VERSION=`cat VERSION`
 
