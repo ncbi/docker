@@ -24,7 +24,7 @@ COPY VERSION .
 USER root
 WORKDIR /root/
 
-RUN apt-get -y -m update && apt-get install -y libgomp1 libnet-perl liblist-moreutils-perl perl-doc liblmdb-dev && rm -rf /var/lib/apt/lists/*
+RUN apt-get -y -m update && apt-get install -y libgomp1 libnet-perl liblist-moreutils-perl perl-doc liblmdb-dev parallel vmtouch wget && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /blast/bin /blast/lib
 COPY --from=blastbuild /root/ncbi-blast-${version}+-src/c++/ReleaseMT/bin /blast/bin
@@ -34,6 +34,19 @@ RUN mkdir -p /blast/blastdb /blast/blastdb_custom
 RUN sed -i '$ a BLASTDB=/blast/blastdb:/blast/blastdb_custom' /etc/environment
 ENV BLASTDB /blast/blastdb:/blast/blastdb_custom
 ENV PATH="/blast/bin:${PATH}"
+
+RUN wget -q ftp://ftp.ncbi.nlm.nih.gov/blast/temp/blastdb_path -O /blast/bin/blastdb_path && chmod +x /blast/bin/blastdb_path
+RUN cp  /blast/bin/blastp /blast/bin/blastp.REAL
+RUN wget -q ftp://ftp.ncbi.nlm.nih.gov/blast/temp/blastp.sh -O /blast/bin/blastp  && chmod +x /blast/bin/blastp
+RUN cp  /blast/bin/blastn /blast/bin/blastn.REAL
+RUN wget -q ftp://ftp.ncbi.nlm.nih.gov/blast/temp/blastn.sh -O /blast/bin/blastn  && chmod +x /blast/bin/blastn
+RUN cp  /blast/bin/blastx /blast/bin/blastx.REAL
+RUN wget -q ftp://ftp.ncbi.nlm.nih.gov/blast/temp/blastx.sh -O /blast/bin/blastx  && chmod +x /blast/bin/blastx
+RUN cp  /blast/bin/tblastn /blast/bin/tblastn.REAL
+RUN wget -q ftp://ftp.ncbi.nlm.nih.gov/blast/temp/tblastn.sh -O /blast/bin/tblastn  && chmod +x /blast/bin/tblastn
+RUN cp  /blast/bin/tblastx /blast/bin/tblastx.REAL
+RUN wget -q ftp://ftp.ncbi.nlm.nih.gov/blast/temp/tblastx.sh -O /blast/bin/tblastx  && chmod +x /blast/bin/tblastx
+RUN echo 'will cite' | parallel --citation
 
 WORKDIR /blast
 
