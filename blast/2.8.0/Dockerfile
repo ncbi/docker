@@ -35,6 +35,8 @@ RUN sed -i '$ a BLASTDB=/blast/blastdb:/blast/blastdb_custom' /etc/environment
 ENV BLASTDB /blast/blastdb:/blast/blastdb_custom
 ENV PATH="/blast/bin:${PATH}"
 
+RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/update_blastdb.pl -o update_blastdb.pl && install -m 755 update_blastdb.pl /usr/bin/ && rm -f update_blastdb.pl
+
 RUN wget -q ftp://ftp.ncbi.nlm.nih.gov/blast/temp/blastdb_path -O /blast/bin/blastdb_path && chmod +x /blast/bin/blastdb_path
 RUN cp  /blast/bin/blastp /blast/bin/blastp.REAL
 RUN wget -q ftp://ftp.ncbi.nlm.nih.gov/blast/temp/blastp.sh -O /blast/bin/blastp  && chmod +x /blast/bin/blastp
