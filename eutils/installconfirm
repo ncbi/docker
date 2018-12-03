@@ -1,0 +1,12 @@
+#!/bin/bash
+echo "***********************"
+echo "esearch version:"
+esearch -version
+echo "xtract version:"
+xtract -version
+echo "EDirect install status:"
+esearch -db pubmed -query "Babalobi OO[au] AND 2008[pdat]" | \
+efetch -format xml | \
+xtract -pattern Author -if Affiliation -contains Medicine \
+-element Initials
+echo "***********************"
