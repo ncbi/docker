@@ -1,0 +1,4 @@
+*.log
+build-image.sh
+test.sh
+TODO
