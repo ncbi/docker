@@ -10,7 +10,7 @@ WORKDIR /root/
 
 RUN apt-get -y -m update && apt-get install -y build-essential curl libidn11 libnet-perl liblist-moreutils-perl perl-doc liblmdb-dev
 
-RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/ncbi-blast-${version}+-x64-linux.tar.gz | \
+RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/ncbi-blast-${version}+-src.tar.gz | \
  tar xzf - && \
  cd ncbi-blast-${version}+-src/c++ && \
  ./configure --with-optimization --with-dll --with-experimental=Int8GI --with-flat-makefile --with-openmp --prefix=/blast && \
