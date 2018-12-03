@@ -1,6 +1,6 @@
-FROM christiam/edirect as edirect
+FROM ncbi/edirect as edirect
 FROM christiam/magicblast as magicblast
-FROM christiam/blast
+FROM ncbi/blast
 
 COPY --from=edirect /usr/local/ncbi/edirect /root/edirect
 RUN apt-get -y -m update && apt-get install -y curl vmtouch cpanminus libxml-simple-perl libwww-perl libnet-perl && rm -rf /var/lib/apt/lists/* && cpanm HTML::Entities

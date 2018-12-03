@@ -51,9 +51,9 @@ RUN cp  /blast/bin/tblastx /blast/bin/tblastx.REAL
 RUN wget -q ftp://ftp.ncbi.nlm.nih.gov/blast/temp/tblastx.sh -O /blast/bin/tblastx  && chmod +x /blast/bin/tblastx
 RUN echo 'will cite' | parallel --citation
 
-#FROM christiam/edirect as edirect
+#FROM ncbi/edirect as edirect
 RUN mkdir -p /root
-COPY --from=christiam/edirect /usr/local/ncbi/edirect /root/edirect
+COPY --from=ncbi/edirect /usr/local/ncbi/edirect /root/edirect
 #COPY --from=edirect /usr/local/ncbi/edirect /root/edirect
 
 WORKDIR /blast

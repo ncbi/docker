@@ -3,8 +3,8 @@
 [NCBI BLAST+](http://blast.ncbi.nlm.nih.gov/) command line applications in a Docker image.
 
 ## Supported tags and respective Dockerfile links
-* [2.8.0](https://github.com/christiam/docker/blob/support-more-versions/blast/2.8.0/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777/#_Blast_ReleaseNotes_BLAST_2_8_0_March_28_)
-* [2.7.1](https://github.com/christiam/docker/blob/support-more-versions/blast/2.7.1/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777/#_Blast_ReleaseNotes_BLAST_2_7_1_October_2_)
+* [2.8.0](https://github.com/ncbi/docker/blob/master/blast/2.8.0/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777/#_Blast_ReleaseNotes_BLAST_2_8_0_March_28_)
+* [2.7.1](https://github.com/ncbi/docker/blob/master/blast/2.7.1/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777/#_Blast_ReleaseNotes_BLAST_2_7_1_October_2_)
 
 # Quick reference
 
@@ -58,7 +58,7 @@ The `$BLASTDB` environment variable refers to an existing directory on the local
   docker run --rm \
     -v $BLASTDB:/blast/blastdb:rw \
     -w /blast/blastdb \
-    christiam/blast \
+    ncbi/blast \
     update_blastdb.pl --decompress  --passive vector
   ```
 ### Make and install my own BLAST databases
@@ -70,7 +70,7 @@ Use case: you have your own sequence data in a file called `sequences.fsa` to ma
     -v $HOME/blastdb_custom:/blast/blastdb_custom:rw \
     -v $HOME/fasta:/blast/fasta:rw \
     -w /blast/blastdb_custom \
-    christiam/blast \
+    ncbi/blast \
     makeblastdb -in /blast/fasta/sequences.fsa -dbtype prot -out proteins -title 'My BLASTDB title'
   ```
 
@@ -85,7 +85,7 @@ The command below mounts the `$BLASTDB` path on the local machine as `/blast/bla
   ```bash
   docker run --rm \
     -v $BLASTDB:/blast/blastdb:ro \
-    christiam/blast \
+    ncbi/blast \
     blastdbcmd -list /blast/blastdb -remove_redundant_dbs
   ```
 
@@ -102,7 +102,7 @@ One can login to the container and run commands inside the container if multiple
     -v $BLASTDB:/blast/blastdb:ro -v $HOME/blastdb_custom:/blast/blastdb_custom:ro \
     -v $HOME/queries:/blast/queries:ro \
     -v $HOME/results:/blast/results:rw \
-    christiam/blast \
+    ncbi/blast \
     /bin/bash
   ```
 This will open a login shell in the container and one can run BLAST+ as if it was locally installed.
@@ -117,7 +117,7 @@ One approach to deal with this situation is to start the blast container in deta
     -v $BLASTDB:/blast/blastdb:ro -v $HOME/blastdb_custom:/blast/blastdb_custom:ro \
     -v $HOME/queries:/blast/queries:ro \
     -v $HOME/results:/blast/results:rw \
-    christiam/blast \
+    ncbi/blast \
     sleep infinity
 
   # Check the container is running
@@ -140,12 +140,12 @@ The two commands show two different approaches to obtain the same result:
   docker exec blast blastn -version
 
   # Create and immediately remove a container image
-  docker run --rm christiam/blast blastn -version
+  docker run --rm ncbi/blast blastn -version
   ```
 
 ### Use a previous version of BLAST+
 
-  `docker run --rm christiam/blast:2.7.1 blastn -version`
+  `docker run --rm ncbi/blast:2.7.1 blastn -version`
 
 ## License
 
