@@ -2,9 +2,7 @@
 
 [NCBI BLAST+](http://blast.ncbi.nlm.nih.gov/) command line applications in a Docker image.
 
-
-Table of Contents
-=================
+## Table of Contents
 
    * [What is NCBI BLAST?](#what-is-ncbi-blast)
    * [How to use this image?](#how-to-use-this-image)
@@ -20,6 +18,7 @@ Table of Contents
          * [Use a previous version of BLAST ](#use-a-previous-version-of-blast)
    * [Support](#support)
    * [License](#license)
+
 
 # What is NCBI BLAST?
 
