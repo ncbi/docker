@@ -1,5 +1,5 @@
-FROM ubuntu:18.04 as blastbuild
 FROM christiam/edirect as edirect
+FROM ubuntu:18.04 as blastbuild
 
 ARG version
 ARG num_procs=8
@@ -39,17 +39,17 @@ ENV PATH="/root/edirect:/blast/bin:${PATH}"
 
 RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/update_blastdb.pl -o update_blastdb.pl && install -m 755 update_blastdb.pl /blast/bin/ && rm -f update_blastdb.pl
 
-RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/blastdb_path -O /blast/bin/blastdb_path && chmod +x /blast/bin/blastdb_path && \
+RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/blastdb_path -o /blast/bin/blastdb_path && chmod +x /blast/bin/blastdb_path && \
     cp  /blast/bin/blastp /blast/bin/blastp.REAL && \
-    curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/blastp.sh -O /blast/bin/blastp  && chmod +x /blast/bin/blastp && \
+    curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/blastp.sh -o /blast/bin/blastp  && chmod +x /blast/bin/blastp && \
     cp  /blast/bin/blastn /blast/bin/blastn.REAL && \
-    curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/blastn.sh -O /blast/bin/blastn  && chmod +x /blast/bin/blastn && \
+    curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/blastn.sh -o /blast/bin/blastn  && chmod +x /blast/bin/blastn && \
     cp  /blast/bin/blastx /blast/bin/blastx.REAL && \
-    curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/blastx.sh -O /blast/bin/blastx  && chmod +x /blast/bin/blastx && \
+    curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/blastx.sh -o /blast/bin/blastx  && chmod +x /blast/bin/blastx && \
     cp  /blast/bin/tblastn /blast/bin/tblastn.REAL && \
-    curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/tblastn.sh -O /blast/bin/tblastn  && chmod +x /blast/bin/tblastn && \
+    curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/tblastn.sh -o /blast/bin/tblastn  && chmod +x /blast/bin/tblastn && \
     cp  /blast/bin/tblastx /blast/bin/tblastx.REAL && \
-    curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/tblastx.sh -O /blast/bin/tblastx  && chmod +x /blast/bin/tblastx
+    curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/tblastx.sh -o /blast/bin/tblastx  && chmod +x /blast/bin/tblastx
 RUN echo 'will cite' | parallel --citation
 
 RUN mkdir -p /root
