@@ -1,5 +1,5 @@
 FROM ncbi/edirect as edirect
-FROM christiam/magicblast as magicblast
+FROM ncbi/magicblast as magicblast
 FROM ncbi/blast
 
 COPY --from=edirect /usr/local/ncbi/edirect /root/edirect
