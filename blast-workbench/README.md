@@ -18,7 +18,7 @@ Please see the [NCBI BLAST+ Docker image documentation][blast_docker].
   docker run --rm \
     -v $HOME/queries:/blast/queries:rw \
     ncbi/blast-workbench \
-    efetch -db protein -id NP_002377 format fasta > /blast/queries/NP_002377.fsa'
+    sh -c 'efetch -db protein -id NP_002377 format fasta > /blast/queries/NP_002377.fsa'
   ```
 
 You can verify the results of this command on the local host as follows:
