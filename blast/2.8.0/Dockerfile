@@ -24,7 +24,7 @@ COPY VERSION .
 USER root
 WORKDIR /root/
 
-RUN apt-get -y -m update && apt-get install -y libgomp1 libnet-perl libxml-simple-perl liblist-moreutils-perl libjson-perl perl-doc liblmdb-dev parallel vmtouch cpanminus wget curl && rm -rf /var/lib/apt/lists/*  && cpanm HTML::Entities
+RUN apt-get -y -m update && apt-get install -y libgomp1 libnet-perl libxml-simple-perl libjson-perl perl-doc liblmdb-dev parallel vmtouch cpanminus wget curl && rm -rf /var/lib/apt/lists/*  && cpanm HTML::Entities
 
 RUN mkdir -p /blast/bin /blast/lib
 COPY --from=blastbuild /root/ncbi-blast-${version}+-src/c++/ReleaseMT/bin /blast/bin

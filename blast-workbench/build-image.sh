@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-USERNAME=christiam
+USERNAME=ncbi
 IMAGE=blast-workbench
 VERSION=0.1
 
