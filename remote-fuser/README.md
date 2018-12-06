@@ -1,4 +1,6 @@
-# Docker image for configuring FUSE access to NCBI provided BLAST databases
+# remote-fuser Docker image
+
+This Docker image facilitates FUSE access to NCBI provided BLAST databases.
 
 ## Usage
 
@@ -16,20 +18,20 @@ remote-fuser.
 Similarly, `${BLASTDB_DIR}` is an environment variable with the value of a directory 
 on the local host to store the BLAST databases. 
 
-    ```bash
-    docker run -dti --rm \
-        --privileged --cap-add SYS_ADMIN --device /dev/fuse --security-opt apparmor=unconfined \
-        -v ${LOG_DIR}:/var/log:shared \
-        -v ${BLASTDB_DIR}:/blast:shared \
-        ncbi/blastdb-remote-fuser-ncbi
-    ```
+```bash
+docker run -dti --rm \
+    --privileged --cap-add SYS_ADMIN --device /dev/fuse --security-opt apparmor=unconfined \
+    -v ${LOG_DIR}:/var/log:shared \
+    -v ${BLASTDB_DIR}:/blast:shared \
+    ncbi/blastdb-remote-fuser-ncbi
+```
 
 To stop the container, please run the command below:
 
-    ```bash
-    docker stop `docker ps -f ancestor=ncbi/blastdb-remote-fuser-ncbi -f status=running -q`
+```bash
+docker stop `docker ps -f ancestor=ncbi/blastdb-remote-fuser-ncbi -f status=running -q`
 
-    ```
+```
 
 ## Maintainer's notes
 
