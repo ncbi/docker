@@ -19,6 +19,7 @@ build-ncbi: remote-fuser-ctl.ini
 	docker build --build-arg source=NCBI -t ${USERNAME}/${IMG_NCBI}:${VERSION} .
 	docker tag ${USERNAME}/${IMG_NCBI}:${VERSION} ${USERNAME}/${IMG_NCBI}:latest
 
+# FIXME
 build-gcp: build-ncbi
 	head -20 ./config-gcs-access.sh > tmp.sh
 	chmod +x tmp.sh
@@ -32,9 +33,9 @@ remote-fuser-ctl.ini:
 
 publish: all
 	docker push ${USERNAME}/${IMG_NCBI}:${VERSION}
-	docker push ${USERNAME}/${IMG_NCBI}:latest
+	#docker push ${USERNAME}/${IMG_NCBI}:latest
 	docker push ${USERNAME}/${IMG_GCP}:${VERSION}
-	docker push ${USERNAME}/${IMG_GCP}:latest
+	#docker push ${USERNAME}/${IMG_GCP}:latest
 
 clean:
 	docker image rm ${USERNAME}/${IMG_NCBI}
@@ -44,24 +45,32 @@ clean:
 ###########################
 .PHONY: stop
 check: stop
-	[ -d logs1 ] || mkdir logs1
-	[ -d blastdb1 ] || mkdir blastdb1
-	[ -d logs2 ] || mkdir logs2
-	[ -d blastdb2 ] || mkdir blastdb2
-	docker run -dti --rm --name ${IMG_NCBI} \
-		--privileged --cap-add SYS_ADMIN --device /dev/fuse --security-opt apparmor=unconfined \
-		--mount type=bind,src=${PWD}/logs1,dst=/var/log,bind-propagation=shared \
-		--mount type=bind,src=${PWD}/blastdb1,dst=/blast,bind-propagation=shared \
-		${USERNAME}/${IMG_NCBI}
-	docker run -dti --rm --name ${IMG_GCP} \
-		--privileged --cap-add SYS_ADMIN --device /dev/fuse --security-opt apparmor=unconfined \
-		--mount type=bind,src=${PWD}/logs2,dst=/var/log,bind-propagation=shared \
-		--mount type=bind,src=${PWD}/blastdb2,dst=/blast,bind-propagation=shared \
-		${USERNAME}/${IMG_GCP}
-	sleep 1
-	docker exec -ti ${IMG_NCBI} ps aux | grep remote-fuser
-	docker exec -ti ${IMG_GCP} ps aux | grep remote-fuser
+	bash -x check-on-cos.sh
 
 stop:
 	-docker stop ${IMG_NCBI} ${IMG_GCP}
-	-sudo rm -fr blastdb[12] logs[12]
+	-rm -fr blastdb_* logs_*
+
+####################################
+# COS
+.PHONY: cos_start cos_stop
+
+TYPE?=n1-standard-8
+ZONE?=us-east4-b
+VM_IMG?=cos-69-10895-93-0			# Container-Optimized OS 69-10895.93.0 stable
+cos_start:
+	@[ ! -z "${GCP_PRJ}" ] || \
+		{ echo "Please define GCP_PRJ environment variable"; exit 1; }
+	gcloud compute instances create rmt-fuser-test-${USER} \
+		--machine-type ${TYPE} \
+		--image ${VM_IMG} \
+		--image-project=cos-cloud \
+        --scopes cloud-platform \
+        --project ${GCP_PRJ} \
+		--zone ${ZONE}
+
+cos_stop:
+	@[ ! -z "${GCP_PRJ}" ] || \
+		{ echo "Please define GCP_PRJ environment variable"; exit 1; }
+	gcloud compute instances delete rmt-fuser-test-${USER} --project ${GCP_PRJ} --zone ${ZONE}
+

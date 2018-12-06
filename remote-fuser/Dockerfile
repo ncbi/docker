@@ -10,7 +10,7 @@ WORKDIR /tmp
 
 RUN apt-get -y -m update && \
     apt-get install -y \
-    fuse libxml2-dev \
+    libxml2-dev \
     curl \
     libconfig-simple-perl \
     libreadonly-perl \
