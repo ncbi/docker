@@ -1,3 +1,4 @@
+FROM ncbi/edirect as edirect
 FROM ubuntu:18.04 as blastbuild
 
 ARG version
@@ -9,7 +10,7 @@ WORKDIR /root/
 
 RUN apt-get -y -m update && apt-get install -y build-essential curl libidn11 libnet-perl perl-doc liblmdb-dev
 
-RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/${version}alpha/ncbi-blast-${version}-alpha+-src.tar.gz | \
+RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/ncbi-blast-${version}+-src.tar.gz | \
  tar xzf - && \
  cd ncbi-blast-${version}+-src/c++ && \
  ./configure --with-optimization --with-dll --with-experimental=Int8GI --with-flat-makefile --with-openmp --prefix=/blast && \
@@ -30,7 +31,7 @@ RUN mkdir -p /blast/bin /blast/lib
 COPY --from=blastbuild /root/ncbi-blast-${version}+-src/c++/ReleaseMT/bin /blast/bin
 COPY --from=blastbuild /root/ncbi-blast-${version}+-src/c++/ReleaseMT/lib /blast/lib
 
-COPY --from=ncbi/edirect /usr/local/ncbi/edirect /root/edirect
+COPY --from=edirect /usr/local/ncbi/edirect /root/edirect
 
 RUN mkdir -p /blast/blastdb /blast/blastdb_custom
 RUN sed -i '$ a BLASTDB=/blast/blastdb:/blast/blastdb_custom' /etc/environment
