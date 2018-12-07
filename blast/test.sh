@@ -11,10 +11,18 @@ shopt -s nullglob
 IMG=${1:-"ncbi/blast:latest"}
 DB=taxdb
 
+SCRIPT_DIR=$(cd "`dirname "$0"`"; pwd)
 TMP=`mktemp -dp $SCRIPT_DIR/`  # Creates tmp directory 
 trap " /bin/rm -fr $TMP " INT QUIT EXIT HUP KILL ALRM
 
-docker run --rm -v $TMP:/blast/blastdb:rw -w /blast/blastdb $IMG update_blastdb.pl --decompress --passive $DB
-docker run --rm -v $TMP:/blast/blastdb:rw -w /blast/blastdb $IMG update_blastdb.pl --decompress $DB
-docker run --rm -v $TMP:/blast/blastdb:rw -w /blast/blastdb $IMG update_blastdb.pl --decompress --source gcp $DB
-docker run --rm -v $TMP:/blast/blastdb:rw -w /blast/blastdb $IMG update_blastdb.pl --decompress --passive --source gcp $DB
+time docker run --rm -v $TMP:/blast/blastdb:rw -w /blast/blastdb $IMG update_blastdb.pl --decompress --passive $DB
+time docker run --rm -v $TMP:/blast/blastdb:rw -w /blast/blastdb $IMG update_blastdb.pl --decompress $DB
+time docker run --rm -v $TMP:/blast/blastdb:rw -w /blast/blastdb $IMG update_blastdb.pl --decompress --source gcp $DB
+time docker run --rm -v $TMP:/blast/blastdb:rw -w /blast/blastdb $IMG update_blastdb.pl --decompress --passive --source gcp $DB
+ls -l $TMP
+
+time docker run --rm ${IMG} /bin/bash -c "printenv BLASTDB"
+time docker run --rm ${IMG} blastn -version
+time docker run --rm ${IMG} installconfirm
+time docker run --rm ${IMG} efetch -db nucleotide -id u00001 -format fasta
+time docker run --rm ${IMG} get_species_taxids.sh -n squirrel
