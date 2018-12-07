@@ -6,10 +6,15 @@ This Docker image facilitates FUSE access to NCBI provided BLAST databases.
 
 There are two Docker images:
 
-| Docker image                   | Data source | Available BLAST databases                | Use case |
-|--------------------------------|-------------|------------------------------------------|----------|
-|`ncbi/blastdb-remote-fuser-ncbi`| NCBI        | See [here][cloud-blastdbs-from-ncbi]     | Operate in any cloud environment close to NCBI (Northern east cost of the United States)|
+| Docker image                   | Data source | Available BLAST databases                | Optimal use case |
+|--------------------------------|-------------|------------------------------------------|------------------|
+|`ncbi/blastdb-remote-fuser-ncbi`| NCBI        | See [here][cloud-blastdbs-from-ncbi]     | Operate in any environment |
 |`ncbi/blastdb-remote-fuser-gcp` | GCS         | See [here][cloud-blastdbs-from-gcp]      | Operate in GCP |
+
+*Note*: These data are stored in data centers near the northeastern coast of
+the United States. Please consider starting your cloud instances in a region
+that is as geographically close as possible to this region to reduce data
+tranfer times.
 
 In the command line below, `${LOG_DIR}` is an environment variable with the
 value of a directory on the local host to store the log files from
