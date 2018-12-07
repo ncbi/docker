@@ -8,8 +8,8 @@ There are two Docker images:
 
 | Docker image                   | Data source | Available BLAST databases                | Optimal use case |
 |--------------------------------|-------------|------------------------------------------|------------------|
-|`ncbi/blastdb-remote-fuser-ncbi`| NCBI        | See [here][cloud-blastdbs-from-ncbi]     | Operate in any environment |
-|`ncbi/blastdb-remote-fuser-gcp` | GCS         | See [here][cloud-blastdbs-from-gcp]      | Operate in GCP |
+|[`ncbi/blastdb-remote-fuser-ncbi`][3]| NCBI        | See [here][cloud-blastdbs-from-ncbi]     | Operate in any environment |
+|[`ncbi/blastdb-remote-fuser-gcp`][4] | GCS         | See [here][cloud-blastdbs-from-gcp]      | Operate in GCP |
 
 *Note*: These data are stored in data centers near the northeastern coast of
 the United States. Please consider starting your cloud instances in a region
@@ -48,3 +48,5 @@ To start/stop a COS instance, use the `make cos_start` and `make cos_stop` comma
 
 [cloud-blastdbs-from-ncbi]: https://ncbi.github.io/blast-cloud/blastdb/available-blastdbs.html
 [cloud-blastdbs-from-gcp]: https://ncbi.github.io/blast-cloud/blastdb/available-blastdbs-gcp.html
+[3]: https://hub.docker.com/r/ncbi/blastdb-remote-fuser-gcp/
+[4]: https://hub.docker.com/r/ncbi/blastdb-remote-fuser-ncbi/
