@@ -44,14 +44,16 @@ One way to provide data for the container is to make it available on the local h
 
 ### Install NCBI-provided BLAST databases
 
-The `$BLASTDB` environment variable refers to an existing directory on the local host. The following command will download and decompress the vector BLAST database.
+The `$BLASTDB` environment variable refers to an existing directory on the
+local host. The following command will download and decompress the `swissprot_v5` BLAST
+database into the `$BLASTDB` directory.
 
   ```bash
   docker run --rm \
     -v $BLASTDB:/blast/blastdb:rw \
     -w /blast/blastdb \
     ncbi/blast \
-    update_blastdb.pl --decompress  --passive vector
+    update_blastdb.pl --source gcp swissprot_v5
   ```
 ### Make and install my own BLAST databases
 
