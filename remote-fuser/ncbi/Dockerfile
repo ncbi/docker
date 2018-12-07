@@ -1,6 +1,5 @@
 FROM ubuntu:18.04
-ARG source=NCBI
-LABEL Description="remote-fuser configured to retrieve BLAST databases from ${source}" \
+LABEL Description="remote-fuser configured to retrieve BLAST databases from NCBI" \
     Vendor="NCBI/NLM/NIH" \
     URL="https://github.com/ncbi/sra-tools" \
     Maintainer=camacho@ncbi.nlm.nih.gov 
@@ -9,12 +8,7 @@ USER root
 WORKDIR /tmp
 
 RUN apt-get -y -m update && \
-    apt-get install -y \
-    libxml2-dev \
-    curl \
-    libconfig-simple-perl \
-    libreadonly-perl \
-    perl-doc && \
+    apt-get install -y fuse libxml2-dev curl libconfig-simple-perl libreadonly-perl perl-doc && \
     rm -rf /var/lib/apt/lists/*
 
 COPY remote-fuser /sbin

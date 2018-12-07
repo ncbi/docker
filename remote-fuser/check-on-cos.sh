@@ -9,7 +9,8 @@ export PATH=/bin:/usr/bin
 set -euo pipefail
 shopt -s nullglob
 
-USERNAME=christiam
+VERSION=${1:-"latest"}
+USERNAME=ncbi
 IMG_GCP=blastdb-remote-fuser-gcp
 IMG_NCBI=blastdb-remote-fuser-ncbi
 
@@ -21,31 +22,31 @@ mkdir logs_ncbi logs_gcp blastdb_ncbi blastdb_gcp
 #    --privileged --cap-add SYS_ADMIN --device /dev/fuse --security-opt apparmor=unconfined \
 #    --mount type=bind,src=${PWD}/logs_ncbi,dst=/var/log,bind-propagation=shared \
 #    --mount type=bind,src=${PWD}/blastdb_ncbi,dst=/blast,bind-propagation=shared \
-#    ${USERNAME}/${IMG_NCBI}
+#    ${USERNAME}/${IMG_NCBI}:${VERSION}
 #docker run -dti --name ${IMG_GCP} \
 #    --privileged --cap-add SYS_ADMIN --device /dev/fuse --security-opt apparmor=unconfined \
 #    --mount type=bind,src=${PWD}/logs_gcp,dst=/var/log,bind-propagation=shared \
 #    --mount type=bind,src=${PWD}/blastdb_gcp,dst=/blast,bind-propagation=shared \
-#    ${USERNAME}/${IMG_GCP}
+#    ${USERNAME}/${IMG_GCP}:${VERSION}
 docker run -dti --name ${IMG_NCBI} \
     --privileged --cap-add SYS_ADMIN --device /dev/fuse --security-opt apparmor=unconfined \
     -v ${PWD}/logs_ncbi:/var/log:shared \
     -v ${PWD}/blastdb_ncbi:/blast:shared \
-    ${USERNAME}/${IMG_NCBI}
+    ${USERNAME}/${IMG_NCBI}:${VERSION}
 docker run -dti --name ${IMG_GCP} \
     --privileged --cap-add SYS_ADMIN --device /dev/fuse --security-opt apparmor=unconfined \
     -v ${PWD}/logs_gcp:/var/log:shared \
     -v ${PWD}/blastdb_gcp:/blast:shared \
-    ${USERNAME}/${IMG_GCP}
+    ${USERNAME}/${IMG_GCP}:${VERSION}
 
 sleep 3;
 docker ps
 
 # Check outside the container
-tail logs_*/remote-fuser.log
-for f in blastdb_*/blastdb/nr*pal; do ls -l $f; cat -n $f ; done
 docker logs ${IMG_NCBI}
 docker logs ${IMG_GCP}
+tail logs_*/remote-fuser.log
+for f in blastdb_*/blastdb/nr*pal; do ls -l $f; cat -n $f ; done
 # Check inside the container
 docker exec -ti ${IMG_NCBI} sh -c "ps aux && ls -l /blast/blastdb/nr*pal && cat -n /blast/blastdb/nr*pal"
 docker exec -ti ${IMG_GCP}  sh -c "ps aux && ls -l /blast/blastdb/nr*pal && cat -n /blast/blastdb/nr*pal"

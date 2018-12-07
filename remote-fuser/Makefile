@@ -12,24 +12,20 @@ IMG_GCP=blastdb-remote-fuser-gcp
 IMG_NCBI=blastdb-remote-fuser-ncbi
 VERSION?=0.1
 
-all: build-gcp
+all: build-gcp build-ncbi
 
-# N.B.: Order in which the targets are run matters!
-build-ncbi: remote-fuser-ctl.ini
-	docker build --build-arg source=NCBI -t ${USERNAME}/${IMG_NCBI}:${VERSION} .
+build-ncbi: remote-fuser.tgz
+	tar -xvC ncbi -f $^ remote-fuser remote-fuser-ctl.ini remote-fuser-ctl.pl
+	docker build -t ${USERNAME}/${IMG_NCBI}:${VERSION} ncbi
 	docker tag ${USERNAME}/${IMG_NCBI}:${VERSION} ${USERNAME}/${IMG_NCBI}:latest
 
-# FIXME
-build-gcp: build-ncbi
-	head -20 ./config-gcs-access.sh > tmp.sh
-	chmod +x tmp.sh
-	./tmp.sh
-	docker build --build-arg source=GCP -t ${USERNAME}/${IMG_GCP}:${VERSION} .
+build-gcp: remote-fuser.tgz
+	tar -xvC gcp -f $^ remote-fuser
+	docker build -t ${USERNAME}/${IMG_GCP}:${VERSION} gcp
 	docker tag ${USERNAME}/${IMG_GCP}:${VERSION} ${USERNAME}/${IMG_GCP}:latest
 
-# This also brings remote-fuser-ctl.pl
-remote-fuser-ctl.ini:
-	curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/executables/remote-fuser/remote-fuser.tgz | tar -zxf -
+remote-fuser.tgz:
+	curl -sO ftp://ftp.ncbi.nlm.nih.gov/blast/executables/remote-fuser/remote-fuser.tgz
 
 publish: all
 	docker push ${USERNAME}/${IMG_NCBI}:${VERSION}
@@ -40,12 +36,11 @@ publish: all
 clean:
 	docker image rm ${USERNAME}/${IMG_NCBI}
 	docker image rm ${USERNAME}/${IMG_GCP}
-	${RM} config-gcs-access.sh README.txt tmp.sh
 
 ###########################
 .PHONY: stop
 check: stop
-	bash -x check-on-cos.sh
+	bash -x check-on-cos.sh ${VERSION}
 
 stop:
 	-docker stop ${IMG_NCBI} ${IMG_GCP}
