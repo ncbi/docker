@@ -36,7 +36,7 @@ One way to provide data for the container is to make it available on the local h
 
 | Directory | Purpose | Notes |
 | --------- | ------  | ----- |
-| `$HOME/blastdb` | Stores NCBI provided BLAST databases | The `$BLASTDB` environment variable is an alias for this |
+| `$HOME/blastdb` | Stores NCBI provided BLAST databases | The `$BLASTDB` environment variable is an alias for this; it should be a _single, absolute_ path. |
 | `$HOME/queries` | Stores user provided query sequence(s) | |
 | `$HOME/fasta`   | Stores user provided FASTA sequences to create BLAST database(s) | |
 | `$HOME/results` | Stores BLAST results | Mount with `rw` permissions |
@@ -44,9 +44,10 @@ One way to provide data for the container is to make it available on the local h
 
 ### Install NCBI-provided BLAST databases
 
-The `$BLASTDB` environment variable refers to an existing directory on the
-local host. The following command will download and decompress the `swissprot_v5` BLAST
-database into the `$BLASTDB` directory.
+The `$BLASTDB` environment variable refers to an existing, writable directory on the
+local host. The following command will download the `swissprot_v5` BLAST database
+from GCP into the `$BLASTDB` directory (notice the `-w` argument, which sets
+the working directory for that command):
 
   ```bash
   docker run --rm \
@@ -57,7 +58,8 @@ database into the `$BLASTDB` directory.
   ```
 ### Make and install my own BLAST databases
 
-Use case: you have your own sequence data in a file called `sequences.fsa` to make a BLAST database. 
+If you have your own sequence data in a file called `sequences.fsa` and want to
+make a BLAST database, please run the command below:
 
   ```bash
   docker run --rm \
@@ -70,11 +72,20 @@ Use case: you have your own sequence data in a file called `sequences.fsa` to ma
 
 ### Make query sequence(s) available
 
-Download your query sequence data to the local host and make it available to the container, e.g.: use Docker `-v` option: `-v $HOME/queries:/blast/queries:ro`.
+One way to make the query sequence data available in the container is to use
+[Docker bind mounts][docker-bind-mounts] to make it available within the
+container. For instance, assuming your query sequences are stored in the 
+`$HOME/queries` directory on the local host, you can use the following
+parameter to `docker run` to make that directory available inside the
+container in `/blast/queries` as a read-only directory:
+
+  `-v $HOME/queries:/blast/queries:ro`.
 
 ### Show available BLAST databases
 
-The command below mounts the `$BLASTDB` path on the local machine as `/blast/blastdb` on the container and `blastdbcmd` shows the available BLAST databases at this location.
+The command below mounts the `$BLASTDB` path on the local machine as
+`/blast/blastdb` on the container and `blastdbcmd` shows the available BLAST
+databases at this location.
 
   ```bash
   docker run --rm \
@@ -85,11 +96,16 @@ The command below mounts the `$BLASTDB` path on the local machine as `/blast/bla
 
 ## Running BLAST
 
-When running BLAST in a Docker container, note the mounts specified to the `docker run` command to make the input and outputs available. In the examples below, the first two mounts provide access to the BLAST databases, the third mount provides access to the query sequence(s) and the fourth mount provides a directory to save the results.
+When running BLAST in a Docker container, note the mounts specified to the
+`docker run` command to make the input and outputs available. In the examples
+below, the first two mounts provide access to the BLAST databases, the third
+mount provides access to the query sequence(s) and the fourth mount provides a
+directory to save the results.
 
 ### Interactive BLAST
 
-One can login to the container and run commands inside the container if multiple BLAST runs will be executed. 
+One can login to the container and run commands inside the container if
+multiple BLAST runs will be executed interactively. 
 
   ```bash
   docker run --rm -it \
@@ -107,7 +123,7 @@ One approach to deal with this situation is to start the blast container in deta
 
   ```bash
   # Start a container named 'blast' in detached mode
-  docker run --rm -d --name blast \
+  docker run --rm -dit --name blast \
     -v $BLASTDB:/blast/blastdb:ro -v $HOME/blastdb_custom:/blast/blastdb_custom:ro \
     -v $HOME/queries:/blast/queries:ro \
     -v $HOME/results:/blast/results:rw \
@@ -133,11 +149,16 @@ The two commands show two different approaches to obtain the same result:
   # Connect to an existing container
   docker exec blast blastn -version
 
-  # Create and immediately remove a container image
+  # Create a new container, run the `blastn -version` command and immediately
+  remove the container image
   docker run --rm ncbi/blast blastn -version
   ```
 
 ### Use a previous version of BLAST+
+
+Appending a tag to the image name (`ncbi/blast`) allows you to use a
+different version of BLAST+ (see below for supported versions). For
+example:
 
   `docker run --rm ncbi/blast:2.7.1 blastn -version`
 
@@ -174,3 +195,5 @@ View refer to the [license](https://www.ncbi.nlm.nih.gov/IEB/ToolBox/CPP_DOC/lxr
 As with all Docker images, these likely also contain other software which may be under other licenses (such as Bash, etc from the base distribution, along with any direct or indirect dependencies of the primary software being contained).
 
 As for any pre-built image usage, it is the image user's responsibility to ensure that any use of this image complies with any relevant licenses for all software contained within.
+
+[docker-bind-mounts]: https://docs.docker.com/storage/bind-mounts/
