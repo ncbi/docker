@@ -10,7 +10,7 @@ WORKDIR /tmp
 
 RUN apt-get -y -m update && \
     apt-get install -y \
-    fuse libxml2-dev \
+    libidn11 fuse libxml2-dev \
     curl && \
     rm -rf /var/lib/apt/lists/*
 
