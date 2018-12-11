@@ -36,7 +36,7 @@ One way to provide data for the container is to make it available on the local h
 
 | Directory | Purpose | Notes |
 | --------- | ------  | ----- |
-| `$HOME/blastdb` | Stores NCBI provided BLAST databases | The `$BLASTDB` environment variable is an alias for this; it should be a _single, absolute_ path. |
+| `$HOME/blastdb` | Stores NCBI provided BLAST databases | The `$BLASTDB_DIR` environment variable is an alias for this; it should be a _single, absolute_ path. |
 | `$HOME/queries` | Stores user provided query sequence(s) | |
 | `$HOME/fasta`   | Stores user provided FASTA sequences to create BLAST database(s) | |
 | `$HOME/results` | Stores BLAST results | Mount with `rw` permissions |
@@ -44,14 +44,14 @@ One way to provide data for the container is to make it available on the local h
 
 ### Install NCBI-provided BLAST databases
 
-The `$BLASTDB` environment variable refers to an existing, writable directory on the
+The `$BLASTDB_DIR` environment variable refers to an existing, writable directory on the
 local host. The following command will download the `swissprot_v5` BLAST database
-from GCP into the `$BLASTDB` directory (notice the `-w` argument, which sets
+from GCP into the `$BLASTDB_DIR` directory (notice the `-w` argument, which sets
 the working directory for that command):
 
   ```bash
   docker run --rm \
-    -v $BLASTDB:/blast/blastdb:rw \
+    -v $BLASTDB_DIR:/blast/blastdb:rw \
     -w /blast/blastdb \
     ncbi/blast \
     update_blastdb.pl --source gcp swissprot_v5
@@ -83,13 +83,13 @@ container in `/blast/queries` as a read-only directory:
 
 ### Show available BLAST databases
 
-The command below mounts the `$BLASTDB` path on the local machine as
+The command below mounts the `$BLASTDB_DIR` path on the local machine as
 `/blast/blastdb` on the container and `blastdbcmd` shows the available BLAST
 databases at this location.
 
   ```bash
   docker run --rm \
-    -v $BLASTDB:/blast/blastdb:ro \
+    -v $BLASTDB_DIR:/blast/blastdb:ro \
     ncbi/blast \
     blastdbcmd -list /blast/blastdb -remove_redundant_dbs
   ```
@@ -109,7 +109,7 @@ multiple BLAST runs will be executed interactively.
 
   ```bash
   docker run --rm -it \
-    -v $BLASTDB:/blast/blastdb:ro -v $HOME/blastdb_custom:/blast/blastdb_custom:ro \
+    -v $BLASTDB_DIR:/blast/blastdb:ro -v $HOME/blastdb_custom:/blast/blastdb_custom:ro \
     -v $HOME/queries:/blast/queries:ro \
     -v $HOME/results:/blast/results:rw \
     ncbi/blast \
@@ -124,7 +124,7 @@ One approach to deal with this situation is to start the blast container in deta
   ```bash
   # Start a container named 'blast' in detached mode
   docker run --rm -dit --name blast \
-    -v $BLASTDB:/blast/blastdb:ro -v $HOME/blastdb_custom:/blast/blastdb_custom:ro \
+    -v $BLASTDB_DIR:/blast/blastdb:ro -v $HOME/blastdb_custom:/blast/blastdb_custom:ro \
     -v $HOME/queries:/blast/queries:ro \
     -v $HOME/results:/blast/results:rw \
     ncbi/blast \
