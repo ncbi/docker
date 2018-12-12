@@ -10,7 +10,8 @@ This (experimental) Docker image contains the latest versions of the following [
 
 ## How to run BLAST?
 
-Please see the [NCBI BLAST+ Docker image documentation][blast_docker].
+Please see the [NCBI BLAST+ Docker image documentation][blast_docker] and replace `ncbi/blast` with
+`ncbi/blast-workbench`.
 
 ## How to run EDirect?
 
