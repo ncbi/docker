@@ -2,6 +2,11 @@ FROM ncbi/edirect as edirect
 FROM ncbi/magicblast as magicblast
 FROM ncbi/blast
 
+LABEL Description="NCBI BLAST tools" \
+    Vendor="NCBI/NLM/NIH" \
+    URL="https://blast.ncbi.nlm.nih.gov" \
+    Maintainer=camacho@ncbi.nlm.nih.gov 
+
 COPY --from=edirect /usr/local/ncbi/edirect /root/edirect
 RUN apt-get -y -m update && apt-get install -y curl vmtouch cpanminus libxml-simple-perl libwww-perl libjson-perl libnet-perl && rm -rf /var/lib/apt/lists/* && cpanm HTML::Entities
 
