@@ -1,6 +1,6 @@
 # blast-workbench
 
-This Docker image contains the latest versions of the following [NCBI][1] software:
+This (experimental) Docker image contains the latest versions of the following [NCBI][1] software:
 
 * [BLAST+][blast_man] command line applications
 * [MagicBLAST][mb_doc]
