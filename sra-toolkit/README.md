@@ -6,4 +6,4 @@ A `Makefile` is provided to conveniently maintain this docker image. In the comm
 
 * `make build VERSION=$X`: builds the docker image
 * `make publish VERSION=$X`: publishes the image to Docker Hub
-* `make check`: performs a sanity check on the most recently build image
+* `make check`: performs a sanity check on the most recently built image

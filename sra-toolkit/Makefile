@@ -22,4 +22,4 @@ clean:
 	docker image rm ${USERNAME}/${IMG} ${USERNAME}/${IMG}:${VERSION}
 
 check:
-	docker run -ti ${USERNAME}/${IMG} fastq-dump --stdout SRR390728 | head -n 8
+	docker run --rm -ti ${USERNAME}/${IMG} fastq-dump --stdout SRR390728 | head -n 8
