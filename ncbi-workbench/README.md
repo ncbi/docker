@@ -32,11 +32,8 @@ The [test.sh](./test.sh) script shows some additional sample commands.
 ## How to run SRA toolkit tools?
 
   ```bash
-  docker run --rm \
-  
+  docker run --rm -it ncbi/workbench fastq-dump --stdout SRR390728 | head -n 8
   ```
-
-Credit: https://github.com/ncbi/sra-tools/wiki/HowTo:-fasterq-dump
 
 ## Maintainer's notes
 
