@@ -1,4 +1,4 @@
-FROM christiam/sra-toolkit as srat
+FROM ncbi/sra-toolkit as srat
 FROM ncbi/blast-workbench
 
 LABEL Description="NCBI tools" \
