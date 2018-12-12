@@ -46,7 +46,7 @@ at runtime to faciliate maintenance, e.g.:
 
 * `make build VERSION=0.2`: builds the docker image and tags it with version `0.2` and `latest`
 * `make publish USERNAME=ronaldo`: publishes the image to Docker Hub under the name `ronaldo/workbench`
-* `make check`: performs a sanity check on the most recently built image using default values (e.g.: `ncbi/workbench`
+* `make check`: performs a sanity check on the most recently built image using default values (e.g.: `ncbi/workbench`)
 
 
 [1]: https://www.ncbi.nlm.nih.gov
