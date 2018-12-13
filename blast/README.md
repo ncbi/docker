@@ -81,7 +81,7 @@ container in `/blast/queries` as a read-only directory:
 
   `-v $HOME/queries:/blast/queries:ro`.
 
-### Show available BLAST databases
+### Show available BLAST databases on local host
 
 The command below mounts the `$BLASTDB_DIR` path on the local machine as
 `/blast/blastdb` on the container and `blastdbcmd` shows the available BLAST
@@ -93,6 +93,23 @@ databases at this location.
     ncbi/blast \
     blastdbcmd -list /blast/blastdb -remove_redundant_dbs
   ```
+
+### Show BLAST databases available for download from NCBI
+
+  ```bash
+  docker run --rm ncbi/blast update_blastdb.pl --showall
+  ```
+
+For instructions on how to download them, please [the documentation for update_blastdb.pl][update_blastdb_doc].
+
+### Show BLAST databases available for download from GCP
+
+*This feature is experimental*.
+
+  ```bash
+  docker run --rm ncbi/blast update_blastdb.pl --showall pretty --source gcp
+  ```
+For instructions on how to download them, please [the documentation for update_blastdb.pl][update_blastdb_doc].
 
 ## Running BLAST
 
@@ -197,3 +214,4 @@ As with all Docker images, these likely also contain other software which may be
 As for any pre-built image usage, it is the image user's responsibility to ensure that any use of this image complies with any relevant licenses for all software contained within.
 
 [docker-bind-mounts]: https://docs.docker.com/storage/bind-mounts/
+[update_blastdb_doc]: https://www.ncbi.nlm.nih.gov/books/NBK532645/
