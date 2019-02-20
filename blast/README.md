@@ -63,6 +63,10 @@ run the commands below:
     > $HOME/fasta/nurse-shark-proteins.fsa
   ```
 
+For additional documentation on the `docker run` command, please see [its
+documentation][docker-run-doc].
+
+
 | Directory | Purpose | Notes |
 | --------- | ------  | ----- |
 | `$HOME/blastdb` | Stores NCBI provided BLAST databases | If set to a _single, absolute_ path, the `$BLASTDB` environment variable could be used instead (see [Configuring BLAST via environment variables][blast-manual-env-vars]). |
@@ -137,9 +141,6 @@ databases at this location.
     blastdbcmd -list /blast/blastdb -remove_redundant_dbs
   ```
 
-For additional documentation on the `docker run` command, please see [its
-documentation][docker-run-doc].
-
 ### Show BLAST databases available for download from NCBI
 
   ```bash
@@ -186,9 +187,6 @@ container:
 
 This will open a login shell in the container and one can run BLAST+ as if it
 was locally installed.
-
-For additional documentation on the `docker run` command, please see [its
-documentation][docker-run-doc].
 
 ### Scripted BLAST
 
@@ -250,9 +248,6 @@ different version of BLAST+ (see below for supported versions). For
 example:
 
   `docker run --rm ncbi/blast:2.7.1 blastn -version`
-
-For additional documentation on the `docker run` command, please see [its
-documentation][docker-run-doc].
 
 # Support
 
