@@ -60,7 +60,7 @@ run the commands below:
     -id P01349 > $HOME/results/P01349.fsa
   docker run --rm ncbi/blast efetch -db protein -format fasta \
     -id Q90523,P80049,P83981,P83982,P83983,P83977,P83984,P83985,P27950 \
-    > $HOME/results/nurse-shark-proteins.fsa
+    > $HOME/fasta/nurse-shark-proteins.fsa
   ```
 
 | Directory | Purpose | Notes |
