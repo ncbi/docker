@@ -9,7 +9,7 @@
       * [Data provisioning](#data-provisioning)
          * [Install NCBI-provided BLAST databases](#install-ncbi-provided-blast-databases)
          * [Make and install my own BLAST databases](#make-and-install-my-own-blast-databases)
-         * [Make query sequence(s) available](#make-query-sequences-available)
+         * [Make query sequence(s) accessible in the Docker container](#make-query-sequences-accessible-in-the-docker-container)
          * [Show available BLAST databases on local host](#show-available-blast-databases-on-local-host)
          * [Show BLAST databases available for download from NCBI](#show-blast-databases-available-for-download-from-ncbi)
          * [Show BLAST databases available for download from GCP](#show-blast-databases-available-for-download-from-gcp)
@@ -114,7 +114,7 @@ sequences in the database:
     blastdbcmd -entry all -db nurse-shark-proteins -outfmt '%a %l %C'
   ```
 
-### Make query sequence(s) available
+### Make query sequence(s) accessible in the Docker container
 
 One way to make the query sequence data accessible in the container is to use
 [Docker bind mounts][docker-bind-mounts]. For instance, assuming your query
