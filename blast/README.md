@@ -57,7 +57,7 @@ run the commands below:
 
   ```bash
   docker run --rm ncbi/blast efetch -db protein -format fasta \
-    -id P01349 > $HOME/results/P01349.fsa
+    -id P01349 > $HOME/queries/P01349.fsa
   docker run --rm ncbi/blast efetch -db protein -format fasta \
     -id Q90523,P80049,P83981,P83982,P83983,P83977,P83984,P83985,P27950 \
     > $HOME/fasta/nurse-shark-proteins.fsa
@@ -215,7 +215,7 @@ specified when the container is started.
 To run a BLAST search in this container, one can issue the following command:
 
   ```bash
-  docker exec blast blastn -query /blast/queries/query.fsa -db vector -out /blast/results/blastn.out
+  docker exec blast blastp -query /blast/queries/P01349.fsa -db nurse-shark-proteins -out /blast/results/blastp.out
   ```
 The results will be stored on the local host's `$HOME/results` directory.
 
