@@ -102,6 +102,7 @@ command below:
     ncbi/blast \
     makeblastdb -in /blast/fasta/nurse-shark-proteins.fsa -dbtype prot \
     -parse_seqids -out nurse-shark-proteins -title 'Nurse shark proteins'
+    -taxid 7801 -blastdb_version 5
   ```
 
 For additional documentation on the `docker run` command, please see [its
