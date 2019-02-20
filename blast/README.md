@@ -44,20 +44,29 @@ as well as a location outside the container to save the results.
 One way to provide data for the container is to make it available on the local
 host and use [Docker bind mounts][docker-bind-mounts] to make these accessible
 from the container. In the examples below, it is assumed that the following
-directories exist and are writable by the user:
+directories exist and are writable by the user.
+
+To create them, please run the following command: 
+
+  ```bash 
+  cd ; mkdir blastdb queries fasta results blastdb_custom
+  ```
 
 | Directory | Purpose | Notes |
 | --------- | ------  | ----- |
-| `$HOME/blastdb` | Stores NCBI provided BLAST databases | If set to a _single, absolute_ path, the `$BLASTDB` environment variable could be used instead (see [Configuring BLAST via environment variables][blast-manual-env-vars]. |
+| `$HOME/blastdb` | Stores NCBI provided BLAST databases | If set to a _single, absolute_ path, the `$BLASTDB` environment variable could be used instead (see [Configuring BLAST via environment variables][blast-manual-env-vars]). |
 | `$HOME/queries` | Stores user provided query sequence(s) | |
 | `$HOME/fasta`   | Stores user provided FASTA sequences to create BLAST database(s) | |
 | `$HOME/results` | Stores BLAST results | Mount with `rw` permissions |
 | `$HOME/blastdb_custom` | Stores user provided BLAST databases | |
 
-To create them, please run the following command: 
+In the examples below we will refer to some sequence data which can be
+obtained by running the commands below:
 
-  ```bash 
-  cd ; mkdir blastdb queries fasta results blastdb_custom`
+  ```bash
+  # Get query sequences
+  docker run --rm ncbi/blast efetch -db protein -format fasta -id P01349 > $HOME/results/P01349.fsa
+  docker run --rm ncbi/blast efetch -db protein -format fasta -id Q90523,P80049,P83981,P83982,P83983,P83977,P83984,P83985,P27950 > $HOME/results/sequences.fsa
   ```
 
 ### Install NCBI-provided BLAST databases
@@ -74,7 +83,7 @@ directory for that command):
     update_blastdb.pl --source gcp swissprot_v5
   ```
 
-For additional documentation about the `docker run` command, please see [its
+For additional documentation on the `docker run` command, please see [its
 documentation][docker-run-doc].
 
 ### Make and install my own BLAST databases
@@ -86,13 +95,13 @@ command below:
   ```bash
   docker run --rm \
     -v $HOME/blastdb_custom:/blast/blastdb_custom:rw \
-    -v $HOME/fasta:/blast/fasta:rw \
+    -v $HOME/fasta:/blast/fasta:ro \
     -w /blast/blastdb_custom \
     ncbi/blast \
     makeblastdb -in /blast/fasta/sequences.fsa -dbtype prot -out proteins -title 'My BLASTDB title'
   ```
 
-For additional documentation about the `docker run` command, please see [its
+For additional documentation on the `docker run` command, please see [its
 documentation][docker-run-doc].
 
 ### Make query sequence(s) available
@@ -113,12 +122,12 @@ databases at this location.
 
   ```bash
   docker run --rm \
-    -v HOME/blastdb:/blast/blastdb:ro \
+    -v $HOME/blastdb:/blast/blastdb:ro \
     ncbi/blast \
     blastdbcmd -list /blast/blastdb -remove_redundant_dbs
   ```
 
-For additional documentation about the `docker run` command, please see [its
+For additional documentation on the `docker run` command, please see [its
 documentation][docker-run-doc].
 
 ### Show BLAST databases available for download from NCBI
@@ -149,9 +158,9 @@ the directories are read-only and read-write respectively).
 
 ### Interactive BLAST
 
-_When to use_: This is useful for running a few (e.g.: less than 5-10 BLAST
-searches) BLAST searches on small BLAST databases where expect the search to
-run in a few seconds.
+__When to use__: This is useful for running a few (e.g.: less than 5-10) BLAST
+searches on small BLAST databases where one expects the search to run in a few
+seconds.
 
 In this case one can login to the container and run BLAST commands inside the
 container:
@@ -168,17 +177,18 @@ container:
 This will open a login shell in the container and one can run BLAST+ as if it
 was locally installed.
 
-For additional documentation about the `docker run` command, please see [its
+For additional documentation on the `docker run` command, please see [its
 documentation][docker-run-doc].
 
 ### Scripted BLAST
 
-_When to use_: This is a more practical approach if one has many (e.g.: 10 or
+__When to use__: This is a more practical approach if one has many (e.g.: 10 or
 more) BLAST searches to run or these take a long time to execute.
 
 In this case it may be better to start the blast container in
 detached mode and execute commands on it. 
-*NOTE*: Be sure to mount _all_ required directories, as these need to be
+
+**NOTE**: Be sure to mount _all_ required directories, as these need to be
 specified when the container is started.
 
   ```bash
@@ -207,7 +217,7 @@ To stop the container started in these examples run the command below:
   docker stop blast
   ```
 
-For additional documentation about the `docker run` command, please see [its
+For additional documentation on the `docker run` command, please see [its
 documentation][docker-run-doc].
 
 ### Show the latest version of BLAST+
@@ -231,7 +241,7 @@ example:
 
   `docker run --rm ncbi/blast:2.7.1 blastn -version`
 
-For additional documentation about the `docker run` command, please see [its
+For additional documentation on the `docker run` command, please see [its
 documentation][docker-run-doc].
 
 # Support
