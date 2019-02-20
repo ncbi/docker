@@ -101,7 +101,7 @@ command below:
     -w /blast/blastdb_custom \
     ncbi/blast \
     makeblastdb -in /blast/fasta/nurse-shark-proteins.fsa -dbtype prot \
-    -parse_seqids -out nurse-shark-proteins -title 'Nurse shark proteins'
+    -parse_seqids -out nurse-shark-proteins -title 'Nurse shark proteins' \
     -taxid 7801 -blastdb_version 5
   ```
 
