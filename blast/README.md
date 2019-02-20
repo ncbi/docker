@@ -85,9 +85,6 @@ directory for that command):
     update_blastdb.pl --source gcp swissprot_v5
   ```
 
-For additional documentation on the `docker run` command, please see [its
-documentation][docker-run-doc].
-
 ### Make and install my own BLAST databases
 
 If you have your own sequence data in a file called
@@ -105,8 +102,17 @@ command below:
     -taxid 7801 -blastdb_version 5
   ```
 
-For additional documentation on the `docker run` command, please see [its
-documentation][docker-run-doc].
+To verify the newly created BLAST database above, one can run the command
+below to display the accessions, sequence length and common name of the
+sequences in the database:
+
+  ```bash
+  docker run --rm \
+    -v $HOME/blastdb:/blast/blastdb:ro \
+    -v $HOME/blastdb_custom:/blast/blastdb_custom:ro \
+    ncbi/blast \
+    blastdbcmd -entry all -db nurse-shark-proteins -outfmt '%a %l %C'
+  ```
 
 ### Make query sequence(s) available
 
