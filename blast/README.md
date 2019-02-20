@@ -101,7 +101,8 @@ command below:
     -v $HOME/fasta:/blast/fasta:ro \
     -w /blast/blastdb_custom \
     ncbi/blast \
-    makeblastdb -in /blast/fasta/sequences.fsa -dbtype prot -out proteins -title 'My BLASTDB title'
+    makeblastdb -in /blast/fasta/sequences.fsa -dbtype prot \
+    -out nurse-shark-proteins -title 'Nurse shark proteins'
   ```
 
 For additional documentation on the `docker run` command, please see [its
