@@ -52,6 +52,18 @@ To create them, please run the following command:
   cd ; mkdir blastdb queries fasta results blastdb_custom
   ```
 
+To populate these directories with sample data used in these examples, please
+run the commands below:
+
+  ```bash
+  # Get query sequences
+  docker run --rm ncbi/blast efetch -db protein -format fasta \
+    -id P01349 > $HOME/results/P01349.fsa
+  docker run --rm ncbi/blast efetch -db protein -format fasta \
+    -id Q90523,P80049,P83981,P83982,P83983,P83977,P83984,P83985,P27950 \
+    > $HOME/results/sequences.fsa
+  ```
+
 | Directory | Purpose | Notes |
 | --------- | ------  | ----- |
 | `$HOME/blastdb` | Stores NCBI provided BLAST databases | If set to a _single, absolute_ path, the `$BLASTDB` environment variable could be used instead (see [Configuring BLAST via environment variables][blast-manual-env-vars]). |
@@ -59,15 +71,6 @@ To create them, please run the following command:
 | `$HOME/fasta`   | Stores user provided FASTA sequences to create BLAST database(s) | |
 | `$HOME/results` | Stores BLAST results | Mount with `rw` permissions |
 | `$HOME/blastdb_custom` | Stores user provided BLAST databases | |
-
-In the examples below we will refer to some sequence data which can be
-obtained by running the commands below:
-
-  ```bash
-  # Get query sequences
-  docker run --rm ncbi/blast efetch -db protein -format fasta -id P01349 > $HOME/results/P01349.fsa
-  docker run --rm ncbi/blast efetch -db protein -format fasta -id Q90523,P80049,P83981,P83982,P83983,P83977,P83984,P83985,P27950 > $HOME/results/sequences.fsa
-  ```
 
 ### Install NCBI-provided BLAST databases
 
