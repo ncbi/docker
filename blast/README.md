@@ -56,12 +56,11 @@ To populate these directories with sample data used in these examples, please
 run the commands below:
 
   ```bash
-  # Get query sequences
   docker run --rm ncbi/blast efetch -db protein -format fasta \
     -id P01349 > $HOME/results/P01349.fsa
   docker run --rm ncbi/blast efetch -db protein -format fasta \
     -id Q90523,P80049,P83981,P83982,P83983,P83977,P83984,P83985,P27950 \
-    > $HOME/results/sequences.fsa
+    > $HOME/results/nurse-shark-proteins.fsa
   ```
 
 | Directory | Purpose | Notes |
@@ -101,8 +100,8 @@ command below:
     -v $HOME/fasta:/blast/fasta:ro \
     -w /blast/blastdb_custom \
     ncbi/blast \
-    makeblastdb -in /blast/fasta/sequences.fsa -dbtype prot \
-    -out nurse-shark-proteins -title 'Nurse shark proteins'
+    makeblastdb -in /blast/fasta/nurse-shark-proteins.fsa -dbtype prot \
+    -parse_seqids -out nurse-shark-proteins -title 'Nurse shark proteins'
   ```
 
 For additional documentation on the `docker run` command, please see [its
