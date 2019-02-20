@@ -230,12 +230,9 @@ documentation][docker-run-doc].
 
 ### Show the latest version of BLAST+
 
-The two commands show two different approaches to obtain the same result:
+The command below shows how to display the latest BLAST version:
 
   ```bash
-  # Connect to an existing container
-  docker exec blast blastn -version
-
   # Create a new container, run the `blastn -version` command and immediately
   # remove the container image
   docker run --rm ncbi/blast blastn -version
