@@ -249,7 +249,7 @@ example:
 # Support
 
 ## Supported tags and respective Dockerfile links
-* [2.8.1](https://github.com/ncbi/docker/blob/blast2.8.1/blast/2.8.0/Dockerfile)
+* [2.8.1](https://github.com/ncbi/docker/blob/master/blast/2.8.1/Dockerfile)
 * [2.8.0](https://github.com/ncbi/docker/blob/master/blast/2.8.0/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777/#_Blast_ReleaseNotes_BLAST_2_8_0_March_28_)
 * [2.7.1](https://github.com/ncbi/docker/blob/master/blast/2.7.1/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777/#_Blast_ReleaseNotes_BLAST_2_7_1_October_2_)
 
