@@ -281,6 +281,6 @@ As with all Docker images, these likely also contain other software which may be
 As for any pre-built image usage, it is the image user's responsibility to ensure that any use of this image complies with any relevant licenses for all software contained within.
 
 [docker-bind-mounts]: https://docs.docker.com/storage/bind-mounts/#start-a-container-with-a-bind-mount
-[update_blastdb_doc]: https://www.ncbi.nlm.nih.gov/books/NBK532645/
+[update_blastdb_doc]: https://www.ncbi.nlm.nih.gov/books/NBK537770/
 [blast-manual-env-vars]: https://www.ncbi.nlm.nih.gov/books/NBK279695/#_usermanual_Configuring_BLAST_via_environ_
 [docker-run-doc]: https://docs.docker.com/engine/reference/run/#general-form
