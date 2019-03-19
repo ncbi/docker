@@ -39,6 +39,9 @@ facilitating reproducibility of BLAST results. As a user of this Docker image,
 you are expected to provide BLAST databases and query sequence(s) to run BLAST
 as well as a location outside the container to save the results. 
 
+*NOTE*: The commands on this page will work on modern Linux and macos
+distributions.
+
 ## Data provisioning
 
 One way to provide data for the container is to make it available on the local
@@ -77,9 +80,9 @@ documentation][docker-run-doc].
 
 ### Install NCBI-provided BLAST databases
 
-The following command will download the `swissprot_v5` BLAST database from GCP
-into `$HOME/blastdb` (notice the `-w` argument, which sets the working
-directory for that command):
+The following command will download the `swissprot_v5` BLAST database from
+Google Cloud Platform (GCP) into `$HOME/blastdb` (notice the `-w` argument,
+which sets the working directory for that command):
 
   ```bash
   docker run --rm \
@@ -102,7 +105,7 @@ command below:
     -w /blast/blastdb_custom \
     ncbi/blast \
     makeblastdb -in /blast/fasta/nurse-shark-proteins.fsa -dbtype prot \
-    -parse_seqids -out nurse-shark-proteins -title 'Nurse shark proteins' \
+    -parse_seqids -out nurse-shark-proteins -title "Nurse shark proteins" \
     -taxid 7801 -blastdb_version 5
   ```
 
@@ -115,7 +118,7 @@ sequences in the database:
     -v $HOME/blastdb:/blast/blastdb:ro \
     -v $HOME/blastdb_custom:/blast/blastdb_custom:ro \
     ncbi/blast \
-    blastdbcmd -entry all -db nurse-shark-proteins -outfmt '%a %l %C'
+    blastdbcmd -entry all -db nurse-shark-proteins -outfmt "%a %l %C"
   ```
 
 ### Make query sequence(s) accessible in the Docker container
