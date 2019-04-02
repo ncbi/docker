@@ -252,14 +252,7 @@ example:
 
 ## Troubleshooting
 
-1. How do I check that docker will work?
-
-Run the following command: `docker run --rm hello-world`.
-
-If this command fails, you may not have docker installed or permissions to run
-docker. 
-
-1. I don't have docker installed!?!
+### I don't have docker installed!?!
 
 You may have to check with your local system administrator, or install docker
 yourself. In Ubuntu linux, you can run the commands below to do that:
@@ -270,6 +263,13 @@ yourself. In Ubuntu linux, you can run the commands below to do that:
   sudo usermod -aG docker $USER
   # Log out and log back in
   ```
+
+### How do I check that docker will work?
+
+Run the following command: `docker run --rm hello-world`.
+
+If this command fails, you may not have docker installed or permissions to run
+docker. 
 
 
 # Support
