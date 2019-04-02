@@ -18,6 +18,7 @@
          * [Scripted BLAST](#scripted-blast)
          * [Show the latest version of BLAST ](#show-the-latest-version-of-blast)
          * [Use a previous version of BLAST ](#use-a-previous-version-of-blast)
+      * [Troubleshooting](#troubleshooting)
    * [Support](#support)
    * [License](#license)
 
@@ -248,6 +249,28 @@ different version of BLAST+ (see below for supported versions). For
 example:
 
   `docker run --rm ncbi/blast:2.7.1 blastn -version`
+
+## Troubleshooting
+
+1. How do I check that docker will work?
+
+Run the following command: `docker run --rm hello-world`.
+
+If this command fails, you may not have docker installed or permissions to run
+docker. 
+
+1. I don't have docker installed!?!
+
+You may have to check with your local system administrator, or install docker
+yourself. In Ubuntu linux, you can run the commands below to do that:
+
+  ```bash
+  sudo snap install docker
+  sudo apt install -y docker.io
+  sudo usermod -aG docker $USER
+  # Log out and log back in
+  ```
+
 
 # Support
 
