@@ -8,7 +8,7 @@ SHELL=/bin/bash
 
 USERNAME?=ncbi
 IMG=workbench
-VERSION?=0.1
+VERSION?=0.2
 
 build:
 	docker build --build-arg version=${VERSION} -t ${USERNAME}/${IMG}:${VERSION} .
