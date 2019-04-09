@@ -148,7 +148,7 @@ databases at this location.
 ### Show BLAST databases available for download from NCBI
 
   ```bash
-  docker run --rm ncbi/blast update_blastdb.pl --showall
+  docker run --rm ncbi/blast update_blastdb.pl --showall --source ncbi
   ```
 
 For instructions on how to download them, please [the documentation for update_blastdb.pl][update_blastdb_doc].
