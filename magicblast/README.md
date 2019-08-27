@@ -38,4 +38,4 @@ Please note that this docker image contains only the magicblast executable.  The
 
 The magicBLAST documentaton is at https://ncbi.github.io/magicblast/
 
-[1]: https://www.biorxiv.org/content/early/2018/10/16/390013
+[1]: https://www.ncbi.nlm.nih.gov/pubmed/31345161
