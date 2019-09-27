@@ -1,5 +1,5 @@
 FROM ubuntu:18.04
-ARG version=1.4.0
+ARG version=1.5.0
 ARG num_procs=8
 LABEL Description="NCBI MagicBLAST" Vendor="NCBI/NLM/NIH" Version=${version} Maintainer=camacho@ncbi.nlm.nih.gov
 
