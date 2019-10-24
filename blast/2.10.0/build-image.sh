@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-USERNAME=christiam
+DOCKER_USERNAME=${1:-"ncbi"}
 IMAGE=blast
 VERSION=`cat VERSION`
 NP=`grep -c ^proc /proc/cpuinfo`
