@@ -275,9 +275,9 @@ docker.
 # Support
 
 ## Supported tags and respective Dockerfile links
-* [2.8.1](https://github.com/ncbi/docker/blob/master/blast/2.8.1/Dockerfile)
-* [2.8.0](https://github.com/ncbi/docker/blob/master/blast/2.8.0/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777/#_Blast_ReleaseNotes_BLAST_2_8_0_March_28_)
-* [2.7.1](https://github.com/ncbi/docker/blob/master/blast/2.7.1/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777/#_Blast_ReleaseNotes_BLAST_2_7_1_October_2_)
+* [2.10.0](https://github.com/ncbi/docker/blob/master/blast/2.10.0/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777)
+* [2.9.0](https://github.com/ncbi/docker/blob/master/blast/2.9.0/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777/#Blast_ReleaseNotes.BLAST_2_9_0_April_1_2)
+* [2.8.1](https://github.com/ncbi/docker/blob/master/blast/2.8.1/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777/#Blast_ReleaseNotes.BLAST_2_8_1_December)
 
 ## Where to get help with:
 

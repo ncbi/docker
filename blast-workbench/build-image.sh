@@ -1,8 +1,8 @@
 #!/bin/bash -ex
 
-USERNAME=ncbi
+DOCKERHUB_USERNAME=${1:-"ncbi"}
 IMAGE=blast-workbench
-VERSION=0.2
+VERSION=0.3
 
-docker build -t $USERNAME/$IMAGE:$VERSION .
-docker tag $USERNAME/$IMAGE:$VERSION $USERNAME/$IMAGE:latest
+docker build -t $DOCKERHUB_USERNAME/$IMAGE:$VERSION .
+docker tag $DOCKERHUB_USERNAME/$IMAGE:$VERSION $DOCKERHUB_USERNAME/$IMAGE:latest
