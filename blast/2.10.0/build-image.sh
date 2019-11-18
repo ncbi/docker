@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+#!/bin/bash -eux
 
 DOCKERHUB_USERNAME=${1:-"ncbi"}
 IMAGE=blast
