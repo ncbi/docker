@@ -4,7 +4,7 @@
 # Author: Christiam Camacho (camacho@ncbi.nlm.nih.gov)
 # Created: Wed 12 Dec 2018 05:12:29 PM EST
 
-IMG=${1:-"ncbi/ncbi-workbench:latest"}
+IMG=${1:-"ncbi/workbench:latest"}
 
 time docker run --rm ${IMG} /bin/bash -c "printenv BLASTDB"
 time docker run --rm ${IMG} blastn -version
