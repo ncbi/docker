@@ -7,5 +7,6 @@ USER root
 WORKDIR /root/
 
 RUN apt-get -y -m update && apt-get install -y time
+COPY update_blastdb.pl /blast/bin/
 CMD ["/bin/bash"]
 
