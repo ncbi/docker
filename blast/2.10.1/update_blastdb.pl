@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# $Id: update_blastdb.pl 602676 2020-02-28 18:18:37Z madden $
+# $Id: update_blastdb.pl 604185 2020-03-24 11:08:16Z camacho $
 # ===========================================================================
 #
 #                            PUBLIC DOMAIN NOTICE
@@ -48,7 +48,7 @@ use constant USER => "anonymous";
 use constant PASSWORD => "anonymous";
 use constant DEBUG => 0;
 use constant MAX_DOWNLOAD_ATTEMPTS => 3;
-use constant EXIT_FAILURE => 2;
+use constant EXIT_FAILURE => 1;
 
 use constant AWS_URL => "http://s3.amazonaws.com";
 use constant AMI_URL => "http://169.254.169.254/latest/meta-data/local-hostname";
@@ -73,19 +73,21 @@ my $opt_showall = undef;
 my $opt_show_version = 0;
 my $opt_decompress = 0;
 my $opt_source;
+my $opt_legacy_exit_code = 0;
 my $opt_nt = &get_num_cores();
-my $result = GetOptions("verbose+"      =>  \$opt_verbose,
-                        "quiet"         =>  \$opt_quiet,
-                        "force"         =>  \$opt_force_download,
-                        "passive:s"     =>  \$opt_passive,
-                        "timeout=i"     =>  \$opt_timeout,
-                        "showall:s"     =>  \$opt_showall,
-                        "version"       =>  \$opt_show_version,
-                        "blastdb_version:i"=>  \$opt_blastdb_ver,
-                        "decompress"    =>  \$opt_decompress,
-                        "source=s"      =>  \$opt_source,
-                        "num_threads=i" =>  \$opt_nt,
-                        "help"          =>  \$opt_help);
+my $result = GetOptions("verbose+"          =>  \$opt_verbose,
+                        "quiet"             =>  \$opt_quiet,
+                        "force"             =>  \$opt_force_download,
+                        "passive:s"         =>  \$opt_passive,
+                        "timeout=i"         =>  \$opt_timeout,
+                        "showall:s"         =>  \$opt_showall,
+                        "version"           =>  \$opt_show_version,
+                        "blastdb_version:i" =>  \$opt_blastdb_ver,
+                        "decompress"        =>  \$opt_decompress,
+                        "source=s"          =>  \$opt_source,
+                        "num_threads=i"     =>  \$opt_nt,
+                        "legacy_exit_code"  =>  \$opt_legacy_exit_code,
+                        "help"              =>  \$opt_help);
 $opt_verbose = 0 if $opt_quiet;
 die "Failed to parse command line options\n" unless $result;
 pod2usage({-exitval => 0, -verbose => 2}) if $opt_help;
@@ -112,32 +114,37 @@ my $exit_code = 0;
 $|++;
 
 if ($opt_show_version) {
-    my $revision = '$Revision: 602676 $';
+    my $revision = '$Revision: 604185 $';
     $revision =~ s/\$Revision: | \$//g;
     print "$0 version $revision\n";
     exit($exit_code);
 }
+my $curl = &get_curl_path();
 
 my $location = "NCBI";
 # If provided, the source takes precedence over any attempts to determine the closest location
 if (defined($opt_source)) {
     if ($opt_source =~ /^ncbi/i) {
         $location = "NCBI";
-    } elsif ($opt_source =~ /^gc/i and $^O !~ /mswin/i) {
+    } elsif ($opt_source =~ /^gc/i) {
         $location = "GCP";
-    } elsif ($opt_source =~ /^aws/i and $^O !~ /mswin/i) {
+    } elsif ($opt_source =~ /^aws/i) {
         $location = "AWS";
     }
 } else {
-    # We use UNIX CLI tools to get data from AWS/GCP, so not supported on windows for now
-    unless ($^O =~ /mswin/i) {
-        my $gcp_cmd = "/usr/bin/curl --connect-timeout 1 -sfo /dev/null -H 'Metadata-Flavor: Google' " . GCP_URL;
-        my $aws_cmd = "/usr/bin/curl --connect-timeout 1 -sfo /dev/null " . AMI_URL;
+    # Try to auto-detect whether we're on the cloud
+    if (defined($curl)) {
+        my $gcp_cmd = "$curl --connect-timeout 1 -sfo /dev/null -H 'Metadata-Flavor: Google' " . GCP_URL;
+        my $aws_cmd = "$curl --connect-timeout 1 -sfo /dev/null " . AMI_URL;
         print "$gcp_cmd\n" if DEBUG;
         $location = "GCP" if (system($gcp_cmd) == 0);
         print "$aws_cmd\n" if DEBUG;
         $location = "AWS" if (system($aws_cmd) == 0);
     }
+}
+if ($location =~ /aws|gcp/i and not defined $curl) {
+    print "Error: $0 depends on curl to fetch data from cloud storage, please install this utility to access these data sources.\n";
+    exit(EXIT_FAILURE);
 }
 
 my $ftp;
@@ -208,10 +215,10 @@ if ($location ne "NCBI") {
                     print $fh join("\n", @files2download);
                     $cmd = "/usr/bin/xargs -P $opt_nt -n 1";
                     $cmd .= " -t" if $opt_verbose > 3;
-                    $cmd .= " /usr/bin/curl -sOR";
+                    $cmd .= " $curl -sOR";
                     $cmd .= " <$fh " ;
                 } else {
-                    $cmd = "/usr/bin/curl -sR";
+                    $cmd = "$curl -sR";
                     $cmd .= " -O $_" foreach (@files2download);
                 }
             }
@@ -234,6 +241,9 @@ if ($location ne "NCBI") {
                 $exit_code = &decompress($_);
                 last if ($exit_code != 1);
             }
+        }
+        unless ($opt_legacy_exit_code) {
+            $exit_code = ($exit_code == 1 ? 0 : $exit_code);
         }
     }
     $ftp->quit();
@@ -478,7 +488,7 @@ sub get_latest_dir
     my $source = shift;
     my $url = GCS_URL . "/" . GCP_BUCKET . "/latest-dir";
     $url = AWS_URL . "/" . AWS_BUCKET . "/latest-dir" if ($source eq "AWS");
-    my $cmd = "/usr/bin/curl -s $url";
+    my $cmd = "$curl -s $url";
     print "$cmd\n" if DEBUG;
     chomp(my $retval = `$cmd`);
     unless (length($retval)) {
@@ -495,7 +505,7 @@ sub get_blastdb_metadata
     my $latest_dir = shift;
     my $url = GCS_URL . "/" . GCP_BUCKET . "/$latest_dir/" . BLASTDB_MANIFEST;
     $url = AWS_URL . "/" . AWS_BUCKET . "/$latest_dir/" . BLASTDB_MANIFEST if ($source eq "AWS");
-    my $cmd = "/usr/bin/curl -sf $url";
+    my $cmd = "curl -sf $url";
     print "$cmd\n" if DEBUG;
     chomp(my $retval = `$cmd`);
     return ($retval, $url);
@@ -533,6 +543,23 @@ sub get_num_cores
         chomp($retval = `/usr/sbin/sysctl -n hw.ncpu`);
     }
     return $retval;
+}
+
+# Returns the path to the curl utility, or undef if it is not found
+sub get_curl_path
+{
+    foreach (qw(/usr/local/bin /usr/bin)) {
+        my $path = "$_/curl";
+        return $path if (-f $path);
+    }
+    if ($^O =~ /mswin/i) {
+        my $retval = `where curl`;
+        if (defined $retval) {
+            chomp($retval);
+            return $retval if (-f $retval);
+        }
+    }
+    return undef;
 }
 
 __END__
@@ -610,6 +637,14 @@ Prints this script's version. Overrides all other options.
 Sets the number of cores to utilize to perform downloads in parallel when data comes from GCS.
 Defaults to all cores (Linux and macos only).
 
+=item B<--legacy_exit_code>
+
+Enables exit codes from prior to version 581818, BLAST+ 2.10.0 release, for
+downloads from NCBI only. This option is meant to be used by legacy applications that rely
+on this exit codes:
+0 for successful operations that result in no downloads, 1 for successful
+downloads, and 2 for errors.
+
 =back
 
 =head1 DESCRIPTION
@@ -619,8 +654,11 @@ command line from the NCBI ftp site.
 
 =head1 EXIT CODES
 
-This script returns 0 on successful operations that result in no downloads, 1
-on successful operations that downloaded files, and 2 on errors.
+This script returns 0 on successful operations and non-zero on errors.
+
+=head1 DEPENDENCIES
+
+This script depends on curl for retrieval from cloud service providers.
 
 =head1 BUGS
 
