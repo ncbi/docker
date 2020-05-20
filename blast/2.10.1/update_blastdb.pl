@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# $Id: update_blastdb.pl 604185 2020-03-24 11:08:16Z camacho $
+# $Id: update_blastdb.pl 608482 2020-05-18 10:37:05Z camacho $
 # ===========================================================================
 #
 #                            PUBLIC DOMAIN NOTICE
@@ -114,7 +114,7 @@ my $exit_code = 0;
 $|++;
 
 if ($opt_show_version) {
-    my $revision = '$Revision: 604185 $';
+    my $revision = '$Revision: 608482 $';
     $revision =~ s/\$Revision: | \$//g;
     print "$0 version $revision\n";
     exit($exit_code);
@@ -134,12 +134,28 @@ if (defined($opt_source)) {
 } else {
     # Try to auto-detect whether we're on the cloud
     if (defined($curl)) {
-        my $gcp_cmd = "$curl --connect-timeout 1 -sfo /dev/null -H 'Metadata-Flavor: Google' " . GCP_URL;
-        my $aws_cmd = "$curl --connect-timeout 1 -sfo /dev/null " . AMI_URL;
+        my $tmpfile = File::Temp->new();
+        my $gcp_cmd = "$curl --connect-timeout 3 --retry 3 --retry-max-time 30 -sfo $tmpfile -H 'Metadata-Flavor: Google' " . GCP_URL;
+        my $aws_cmd = "$curl --connect-timeout 3 --retry 3 --retry-max-time 30 -sfo /dev/null " . AMI_URL;
         print "$gcp_cmd\n" if DEBUG;
-        $location = "GCP" if (system($gcp_cmd) == 0);
+        if (system($gcp_cmd) == 0) { 
+            # status not always reliable.  Check that curl output is all digits.
+            my $tmpfile_content = do { local $/; <$tmpfile>};
+            print "curl output $tmpfile_content\n" if DEBUG;
+            $location = "GCP" if ($tmpfile_content =~ m/^(\d+)$/);
+        } elsif (DEBUG) {
+            # Consult https://ec.haxx.se/usingcurl/usingcurl-returns
+            print "curl to GCP metadata server returned ", $?>>8, "\n";
+        }
+
         print "$aws_cmd\n" if DEBUG;
-        $location = "AWS" if (system($aws_cmd) == 0);
+        if (system($aws_cmd) == 0) {
+            $location = "AWS";
+        } elsif (DEBUG) {
+            # Consult https://ec.haxx.se/usingcurl/usingcurl-returns
+            print "curl to AWS metadata server returned ", $?>>8, "\n";
+        }
+        print "Location is $location\n" if DEBUG;
     }
 }
 if ($location =~ /aws|gcp/i and not defined $curl) {
@@ -495,6 +511,7 @@ sub get_latest_dir
         print STDERR "ERROR: Missing file $url, please try again or report to blast-help\@ncbi.nlm.nih.gov\n";
         exit(EXIT_FAILURE);
     }
+    print "$source latest-dir: '$retval'\n" if DEBUG;
     return $retval;
 }
 
@@ -632,10 +649,10 @@ Produce no output (default: false). Overrides the B<--verbose> option.
 
 Prints this script's version. Overrides all other options.
 
-=item B<--num_cores>
+=item B<--num_threads>
 
-Sets the number of cores to utilize to perform downloads in parallel when data comes from GCS.
-Defaults to all cores (Linux and macos only).
+Sets the number of threads to utilize to perform downloads in parallel when data comes from the cloud.
+Defaults to use all available CPUs on the machine (Linux and macos only).
 
 =item B<--legacy_exit_code>
 
