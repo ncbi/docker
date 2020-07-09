@@ -1,6 +1,5 @@
 FROM ncbi/edirect as edirect
 FROM ubuntu:18.04 as blastbuild
-
 ARG version
 ARG num_procs=8
 LABEL Description="NCBI BLAST" Vendor="NCBI/NLM/NIH" Version=${version} Maintainer=camacho@ncbi.nlm.nih.gov
@@ -17,8 +16,7 @@ RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/${version}/ncbi-
  cd ReleaseMT/build && \
  make -j ${num_procs} -f Makefile.flat blastdb_aliastool.exe blastdbcheck.exe blastdbcmd.exe blast_formatter.exe blastn.exe blastp.exe blastx.exe convert2blastmask.exe deltablast.exe dustmasker.exe makeblastdb.exe makembindex.exe makeprofiledb.exe psiblast.exe rpsblast.exe rpstblastn.exe segmasker.exe tblastn.exe tblastx.exe windowmasker.exe
 
-
-FROM ubuntu:18.04
+FROM google/cloud-sdk:slim as gsutil
 ARG version
 COPY VERSION .
 
@@ -49,7 +47,9 @@ RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/${version}/blastdb_path -o /bl
     curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/${version}/tblastn.sh -o /blast/bin/tblastn  && chmod +x /blast/bin/tblastn && \
     cp  /blast/bin/tblastx /blast/bin/tblastx.REAL && \
     curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/${version}/tblastx.sh -o /blast/bin/tblastx  && chmod +x /blast/bin/tblastx
-RUN echo 'will cite' | parallel --citation
+
+
+COPY update_blastdb.pl /blast/bin
 
 WORKDIR /blast
 
