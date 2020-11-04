@@ -6,9 +6,9 @@ documentation.
 # Support
 
 ## Supported tags and respective Dockerfile links
-* [2.10.0](https://github.com/ncbi/docker/blob/master/blast/2.10.0/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777)
-* [2.9.0](https://github.com/ncbi/docker/blob/master/blast/2.9.0/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777/#Blast_ReleaseNotes.BLAST_2_9_0_April_1_2)
-* [2.8.1](https://github.com/ncbi/docker/blob/master/blast/2.8.1/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777/#Blast_ReleaseNotes.BLAST_2_8_1_December)
+* [2.11.0](https://github.com/ncbi/docker/blob/master/blast/2.11.0/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777)
+* [2.10.1](https://github.com/ncbi/docker/blob/master/blast/2.10.1/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777/#Blast_ReleaseNotes.BLAST_2_10_1_June_8_2)
+* [2.10.0](https://github.com/ncbi/docker/blob/master/blast/2.10.0/Dockerfile): [release notes](https://www.ncbi.nlm.nih.gov/books/NBK131777/#Blast_ReleaseNotes.BLAST_2_10_0_December)
 
 ## Where to get help with:
 
