@@ -49,7 +49,7 @@ RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/${version}/blastdb_path -o /bl
     cp  /blast/bin/tblastx /blast/bin/tblastx.REAL && \
     curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/${version}/tblastx.sh -o /blast/bin/tblastx  && chmod +x /blast/bin/tblastx
 
-
+# Remove the line below after the BLAST+ 2.11 release
 COPY update_blastdb.pl /blast/bin
 
 WORKDIR /blast
