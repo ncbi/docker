@@ -213,14 +213,13 @@ if ($location ne "NCBI") {
             my $cmd;
             my $fh = File::Temp->new();
             if ($location eq "GCP" and defined($gsutil)) {
-                $cmd = "$gsutil ";
+                $cmd = "$gsutil -q ";
                 if ($opt_nt > 1) {
-                    $cmd .= "-m -q cp ";
-                    $cmd .= "-o 'GSUtil:parallel_thread_count=1' -o 'GSUtil:parallel_process_count=$opt_nt' ";
-                } else {
-                    $cmd .= "-q cp ";
+                    $cmd .= "-m ";
+                    $cmd .= "-o 'GSUtil:parallel_thread_count=1' ";
+                    $cmd .= "-o 'GSUtil:parallel_process_count=$opt_nt' ";
                 }
-                $cmd .= join(" ", @files2download) . " .";
+                $cmd .= " cp " . join(" ", @files2download) . " .";
             } elsif ($location eq "AWS" and defined ($awscli)) {
                 my $aws_cmd = "$awscli s3 cp ";
                 $aws_cmd .= "--only-show-errors " unless $opt_verbose >= 3;
