@@ -5,7 +5,7 @@ LABEL Description="NCBI EDirect" Vendor="NCBI/NLM/NIH" Version=${version} Mainta
 USER root
 WORKDIR /usr/local/ncbi
 
-RUN apt-get -y -m update && apt-get install -y curl cpanminus libxml-simple-perl libwww-perl libnet-perl && rm -rf /var/lib/apt/lists/*
+RUN apt-get -y -m update && apt-get install -y curl cpanminus libxml-simple-perl libwww-perl libnet-perl build-essential && rm -rf /var/lib/apt/lists/*
 
 RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/entrez/entrezdirect/edirect.tar.gz | \
  tar xzf - && \
