@@ -2,7 +2,9 @@
 
 USERNAME=ncbi
 IMAGE=amr
-VERSION=`cat VERSION`
+VERSION=1.3
+DB_VERSION=`curl https://ftp.ncbi.nlm.nih.gov/pathogen/Antimicrobial_resistance/AMRFinderPlus/database/latest/version.txt`
 
-docker build --build-arg VERSION=${VERSION} -t $USERNAME/$IMAGE:$VERSION . \
-    && docker tag $USERNAME/$IMAGE:$VERSION $USERNAME/$IMAGE:latest
+docker build --build-arg VERSION=${VERSION} --build-arg DB_VERSION=${DB_VERSION} -t $USERNAME/$IMAGE:$DB_VERSION . \
+    && docker tag $USERNAME/$IMAGE:$DB_VERSION $USERNAME/$IMAGE:latest
+

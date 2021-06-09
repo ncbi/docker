@@ -1,30 +1,33 @@
-FROM centos:latest
+FROM ubuntu:latest
 
-COPY VERSION .
+MAINTAINER aprasad@ncbi.nlm.nih.gov
+
+ARG VERSION
 
 USER root
-WORKDIR /root
 
-RUN yum -y install libgomp curl ncbi-blast 
+# basic setup
+RUN apt-get update && apt-get install -y hmmer ncbi-blast+ git libcurl4-openssl-dev build-essential
 
-# install blast
-RUN mkdir -p /blast/bin /blast/lib
-COPY --from=amrbuild /root/ncbi-blast-2.7.1+-src/c++/ReleaseMT/bin /blast/bin
-COPY --from=amrbuild /root/ncbi-blast-2.7.1+-src/c++/ReleaseMT/lib /blast/lib
-WORKDIR /blast/blastdb
-ENV BLASTDB /blast/blastdb
-ENV PATH="/blast/bin:${PATH}"
+# Install AMRFinderPlus
+RUN git clone https://github.com/ncbi/amr.git \
+        && cd amr \
+        && make \
+        && make install \
+        && cd .. \
+        && rm -rf amr 
 
-# install hmmer
-COPY --from=amrbuild /hmmer/bin /hmmer/bin
-WORKDIR /hmmer/hmmerdb
-ENV HMMERDB=/hmmer/hmmerdb
-ENV PATH="/hmmer/bin:${PATH}"
+ARG DB_VERSION
+RUN amrfinder -u
 
-# install amr_report
-RUN mkdir amr
-WORKDIR amr
-CMD curl -O https://raw.githubusercontent.com/ncbi/amr/master/.github/workflows/get_binary_release.sh 
-RUN ./get_binary_release.sh
+WORKDIR /data
 
-CMD ["/bin/bash"]
+# update database on every run
+# ENTRYPOINT amrfinder -u 
+
+# Example commands: 
+# docker run --rm -v ${PWD}:/data ncbi/amr \
+#     amrfinder -p test_prot.fa --threads 8
+
+# docker run --rm -v ${PWD}:/data ncbi/amr \
+#    'amrfinder -u && amrfinder -p test_prot.fa --threads 8'
