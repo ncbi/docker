@@ -22,9 +22,6 @@ RUN amrfinder -u
 
 WORKDIR /data
 
-# update database on every run
-# ENTRYPOINT amrfinder -u 
-
 # Example commands: 
 # docker run --rm -v ${PWD}:/data ncbi/amr \
 #     amrfinder -p test_prot.fa --threads 8
