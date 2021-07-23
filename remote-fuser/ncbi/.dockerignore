@@ -1,5 +1,0 @@
-config-gcs-access.sh
-*.log
-typescript
-blastdb*
-logs*
