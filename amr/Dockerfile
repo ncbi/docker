@@ -9,6 +9,8 @@ USER root
 # basic setup
 RUN apt-get update && apt-get install -y hmmer ncbi-blast+ git libcurl4-openssl-dev build-essential
 
+ARG SOFTWARE_VERSION
+
 # Install AMRFinderPlus
 RUN git clone https://github.com/ncbi/amr.git \
         && cd amr \
@@ -18,6 +20,7 @@ RUN git clone https://github.com/ncbi/amr.git \
         && rm -rf amr 
 
 ARG DB_VERSION
+
 RUN amrfinder -u
 
 WORKDIR /data
