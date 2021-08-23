@@ -14,3 +14,6 @@ docker build --build-arg VERSION=${VERSION} --build-arg DB_VERSION=${DB_VERSION}
     -t $USERNAME/$IMAGE:$VERSION_TAG . \
     && docker tag $USERNAME/$IMAGE:$VERSION_TAG $USERNAME/$IMAGE:latest
 
+echo $VERSION_TAG > version_tag.txt
+>&2 echo "To push to dockerhub run:"
+>&2 echo "docker push ncbi/amr:$VERSION_TAG"
