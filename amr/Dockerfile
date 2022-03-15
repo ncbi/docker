@@ -7,17 +7,14 @@ ARG VERSION
 USER root
 
 # basic setup
-RUN apt-get update && apt-get install -y hmmer ncbi-blast+ git libcurl4-openssl-dev build-essential
+RUN apt-get update && apt-get install -y hmmer ncbi-blast+ libcurl4-openssl-dev curl
 
 ARG SOFTWARE_VERSION
 
+ARG BINARY_URL
+
 # Install AMRFinderPlus
-RUN git clone https://github.com/ncbi/amr.git \
-        && cd amr \
-        && make \
-        && make install \
-        && cd .. \
-        && rm -rf amr 
+RUN cd /usr/local/bin && curl --silent -L ${BINARY_URL} | tar xvfz -
 
 ARG DB_VERSION
 
