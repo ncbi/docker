@@ -3,7 +3,8 @@
 DOCKERHUB_USERNAME=${1:-"ncbi"}
 IMAGE=blast
 VERSION=`curl -s https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/VERSION`
+VDB_VERSION=3.0.0
 NP=`grep -c ^proc /proc/cpuinfo`
 
-docker build --build-arg version=${VERSION} --build-arg num_procs=${NP} -t $DOCKERHUB_USERNAME/$IMAGE:$VERSION .
+docker build --build-arg version=${VERSION} --build-arg num_procs=${NP} --build-arg vdb_version=${VDB_VERSION} -t $DOCKERHUB_USERNAME/$IMAGE:$VERSION .
 docker tag $DOCKERHUB_USERNAME/$IMAGE:$VERSION $DOCKERHUB_USERNAME/$IMAGE:latest
