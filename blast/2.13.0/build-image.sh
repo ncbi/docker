@@ -3,6 +3,7 @@
 DOCKERHUB_USERNAME=${1:-"ncbi"}
 IMAGE=blast
 VERSION=`curl -s https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/VERSION`
+# Check the latest ncbi-vdb release version in https://github.com/ncbi/ncbi-vdb/tags
 VDB_VERSION=3.0.0
 NP=`grep -c ^proc /proc/cpuinfo`
 
