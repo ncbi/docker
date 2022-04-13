@@ -16,7 +16,7 @@ COPY patch.txt .
 RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/${version}/ncbi-blast-${version}+-src.tar.gz | \
  tar xzf - && \
  cd ncbi-blast-${version}+-src/c++ && \
- patch -p0 <../patch.txt && \
+ patch -p0 <../../patch.txt && \
  ./configure --with-mt --with-strip --with-optimization --with-dll --with-experimental=Int8GI --with-flat-makefile --with-openmp --with-vdb --without-gnutls --without-gcrypt --prefix=/blast && \
  cd ReleaseMT/build && \
  make -j ${num_procs} -f Makefile.flat blastdb_aliastool.exe blastdbcheck.exe blastdbcmd.exe blast_formatter.exe blastn.exe blastp.exe blastx.exe convert2blastmask.exe deltablast.exe dustmasker.exe makeblastdb.exe makembindex.exe makeprofiledb.exe psiblast.exe rpsblast.exe rpstblastn.exe segmasker.exe tblastn.exe tblastx.exe windowmasker.exe blastn_vdb.exe tblastn_vdb.exe blast_formatter_vdb.exe blast_vdb_cmd.exe
