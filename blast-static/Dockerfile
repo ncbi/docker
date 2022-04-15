@@ -9,7 +9,12 @@ WORKDIR /usr
 RUN if [ $(uname -m) = x86_64 ] ; then arch=x64; \
     elif [ $(uname -m) = aarch64 ] ; then arch=x64-arm; \
     else echo "Architecture $(uname -m) is not supported" >&2; exit 1; \
-    fi &&  wget ftp://ftp.ncbi.nlm.nih.gov/blast/executables/LATEST/ncbi-blast-${version}+-${arch}-linux.tar.gz && tar xzf ncbi-blast-${version}+-${arch}-linux.tar.gz --strip-components=2 && rm ncbi-blast-${version}+-${arch}-linux.tar.gz
+    fi &&  wget ftp://ftp.ncbi.nlm.nih.gov/blast/executables/LATEST/ncbi-blast-${version}+-${arch}-linux.tar.gz && tar xzf ncbi-blast-${version}+-${arch}-linux.tar.gz --strip-components=1 && rm ncbi-blast-${version}+-${arch}-linux.tar.gz
+
+
+# Needed for 2.13.0 Linux amd64 release
+RUN [ -d "ncbi-blast-${version}+" ] &&  cp -R "ncbi-blast-${version}+/bin" . && rm -R "ncbi-blast-${version}+"
+
 
 RUN mkdir -p /var/db/blast
 ENV BLASTDB /var/db/blast
