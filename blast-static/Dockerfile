@@ -13,7 +13,10 @@ RUN if [ $(uname -m) = x86_64 ] ; then arch=x64; \
 
 
 # Needed for 2.13.0 Linux amd64 release
-RUN [ -d "ncbi-blast-${version}+" ] &&  cp -R "ncbi-blast-${version}+/bin" . && rm -R "ncbi-blast-${version}+"
+RUN if [ -d "ncbi-blast-${version}+" ] ; then \
+       cp -R "ncbi-blast-${version}+/bin" . ; \
+       rm -R "ncbi-blast-${version}+"; \
+    fi
 
 
 RUN mkdir -p /var/db/blast
