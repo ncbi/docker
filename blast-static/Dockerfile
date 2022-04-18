@@ -1,6 +1,5 @@
 FROM ubuntu:18.04
 ARG version
-COPY VERSION .
 
 USER root
 RUN apt-get -y -m update && apt-get install -y wget libidn11 libnet-perl liblist-moreutils-perl perl-doc libgomp1 libxml2
