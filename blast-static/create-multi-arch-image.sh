@@ -2,7 +2,7 @@
 
 USERNAME=${1:-"ncbi"}
 IMAGE=blast-static
-VERSION=`cat VERSION`
+VERSION=`curl https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/VERSION`
 
 docker manifest create $USERNAME/$IMAGE:$VERSION \
 	--amend $USERNAME/$IMAGE:${VERSION}-amd64 \

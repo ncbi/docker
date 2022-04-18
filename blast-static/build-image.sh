@@ -2,7 +2,7 @@
 
 USERNAME=${1:-"ncbi"}
 IMAGE=blast-static
-VERSION=`cat VERSION`
+VERSION=`curl https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/VERSION`
 
 case $(uname -m) in
 	x86_64) ARCH=amd64;;
