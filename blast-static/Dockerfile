@@ -17,9 +17,11 @@ RUN if [ -d "ncbi-blast-${version}+" ] ; then \
        rm -R "ncbi-blast-${version}+"; \
     fi
 
+RUN mkdir -p /blast/blastdb /blast/blastdb_custom
+RUN sed -i '$ a BLASTDB=/blast/blastdb:/blast/blastdb_custom' /etc/environment
+ENV BLASTDB /blast/blastdb:/blast/blastdb_custom
+ENV BLAST_DOCKER true
 
-RUN mkdir -p /var/db/blast
-ENV BLASTDB /var/db/blast
-WORKDIR /tmp
+WORKDIR /blast
 
 CMD ["/bin/sh"]
