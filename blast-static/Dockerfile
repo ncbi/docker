@@ -4,7 +4,9 @@ ARG version
 USER root
 RUN apt-get -y -m update && apt-get install -y wget libidn11 libnet-perl liblist-moreutils-perl perl-doc libgomp1 libxml2
 
-WORKDIR /usr
+RUN mkdir -p /blast/blastdb /blast/blastdb_custom
+WORKDIR /blast
+
 RUN if [ $(uname -m) = x86_64 ] ; then arch=x64; \
     elif [ $(uname -m) = aarch64 ] ; then arch=x64-arm; \
     else echo "Architecture $(uname -m) is not supported" >&2; exit 1; \
@@ -17,9 +19,9 @@ RUN if [ -d "ncbi-blast-${version}+" ] ; then \
        rm -R "ncbi-blast-${version}+"; \
     fi
 
-
-RUN mkdir -p /var/db/blast
-ENV BLASTDB /var/db/blast
-WORKDIR /tmp
+RUN sed -i '$ a BLASTDB=/blast/blastdb:/blast/blastdb_custom' /etc/environment
+ENV BLASTDB /blast/blastdb:/blast/blastdb_custom
+ENV BLAST_DOCKER true
+ENV PATH="/blast/bin:${PATH}"
 
 CMD ["/bin/sh"]
