@@ -38,4 +38,5 @@ WORKDIR /data
 #     amrfinder -p test_prot.fa --threads 8
 
 # docker run --rm -v ${PWD}:/data ncbi/amr \
-#    'amrfinder -u && amrfinder -p test_prot.fa --threads 8'
+#    bash -c 'amrfinder -u && amrfinder -p test_prot.fa --threads 8' \
+#    > amrfinder.out
