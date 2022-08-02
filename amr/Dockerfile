@@ -1,6 +1,6 @@
 FROM ubuntu:latest
 
-MAINTAINER aprasad@ncbi.nlm.nih.gov
+LABEL maintainer="Arjun Prasad <aprasad@ncbi.nlm.nih.gov>"
 
 ARG VERSION
 
@@ -14,7 +14,9 @@ ARG SOFTWARE_VERSION
 ARG BINARY_URL
 
 # Install AMRFinderPlus
-RUN cd /usr/local/bin && curl --silent -L ${BINARY_URL} | tar xvfz - \
+WORKDIR /usr/local/bin
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+RUN curl --silent -L ${BINARY_URL} | tar xvfz - \
     && curl -O https://raw.githubusercontent.com/ncbi/amr/master/test_dna.fa \
          -O https://raw.githubusercontent.com/ncbi/amr/master/test_prot.fa \
          -O https://raw.githubusercontent.com/ncbi/amr/master/test_prot.gff \
@@ -27,9 +29,9 @@ ARG DB_VERSION
 RUN amrfinder -u
 
 # Test installation
-RUN cd /usr/local/bin \
-        && amrfinder --plus -n test_dna.fa -p test_prot.fa -g test_prot.gff -O Escherichia > test_both.got \
-        && diff test_both.expected test_both.got
+WORKDIR /usr/local/bin
+RUN amrfinder --plus -n test_dna.fa -p test_prot.fa -g test_prot.gff -O Escherichia > test_both.got \
+    && diff test_both.expected test_both.got
 
 WORKDIR /data
 

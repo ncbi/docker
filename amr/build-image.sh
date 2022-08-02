@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Increment this to build from scratch including dependencies
+# Increment this to build from base including dependencies
 VERSION=1.9
 
 get_tarball_url() {
@@ -11,11 +11,19 @@ get_tarball_url() {
 
 USERNAME=ncbi
 IMAGE=amr
-DB_VERSION=`curl --silent https://ftp.ncbi.nlm.nih.gov/pathogen/Antimicrobial_resistance/AMRFinderPlus/database/latest/version.txt`
+
+echo -n "Getting latest software version... "
 SOFTWARE_VERSION=`curl --silent https://raw.githubusercontent.com/ncbi/amr/master/version.txt`
+echo "$SOFTWARE_VERSION"
+
+echo -n "Getting latest database version... "
+DB_VERSION=`curl --silent https://ftp.ncbi.nlm.nih.gov/pathogen/Antimicrobial_resistance/AMRFinderPlus/database/latest/version.txt`
+echo "$DB_VERSION"
+
 BINARY_URL=$(get_tarball_url ncbi/amr)
 VERSION_TAG="${SOFTWARE_VERSION}-$DB_VERSION"
 
+echo "Running docker build..."
 docker build --build-arg VERSION=${VERSION} --build-arg DB_VERSION=${DB_VERSION} \
     --build-arg SOFTWARE_VERSION=${SOFTWARE_VERSION} \
     --build-arg BINARY_URL=${BINARY_URL} \
@@ -30,12 +38,14 @@ echo $VERSION_TAG > version_tag.txt
 # VERSION_TAG=3.10.23-2021-12-21.1
 
 # Run some tests
+echo "Testing new image... "
 docker run --rm $USERNAME/$IMAGE:$VERSION_TAG bash -c 'cd /usr/local/bin; ./test_amrfinder.sh'
 if [ $? -gt 0 ]
 then
     >&2 echo "ERROR! Tests for $USERNAME/$IMAGE:$VERSION_TAG failed"
     exit 1
 else
+    >&2 echo "Tests successful!"
     >&2 echo "To push to dockerhub run:"
     >&2 echo "docker push ncbi/amr:$VERSION_TAG"
 fi
