@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu
 
 LABEL maintainer="Arjun Prasad <aprasad@ncbi.nlm.nih.gov>"
 
@@ -35,10 +35,15 @@ RUN amrfinder --plus -n test_dna.fa -p test_prot.fa -g test_prot.gff -O Escheric
 
 WORKDIR /data
 
-# Example commands: 
+#  Example commands
+# ------------------
+# Run on a local file with 8 threads
 # docker run --rm -v ${PWD}:/data ncbi/amr \
 #     amrfinder -p test_prot.fa --threads 8
-
+#
+# Update the database then run on a local file (new images are released with
+# every database release, so you shouldn't need to do this if your image is up
+# to date)
 # docker run --rm -v ${PWD}:/data ncbi/amr \
 #    bash -c 'amrfinder -u && amrfinder -p test_prot.fa --threads 8' \
 #    > amrfinder.out
