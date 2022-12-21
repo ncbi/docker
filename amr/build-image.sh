@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -e
 # Increment this to build from base including dependencies
 VERSION=1.10
 
