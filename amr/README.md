@@ -7,9 +7,12 @@ See [the AMRFinderPlus wiki](https://github.com/ncbi/amr/wiki) for documentation
 
 Note that this image contains both software and database.
 
+Building 
+---------
+To build the image use the script `build-image.sh` which will grab the latest versions of software and database from the internet to facilitate tagging of the resulting image.
+
 Usage
 ---------
-
 
 ### Run core only on a file with 8 threads
 ```
