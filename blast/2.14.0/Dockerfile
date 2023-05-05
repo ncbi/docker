@@ -33,7 +33,7 @@ RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/${version}/ncbi-
  cd ncbi-blast-${version}+-src/c++ && \
  ./configure --with-mt --with-strip --with-optimization --with-dll --with-experimental=Int8GI --with-flat-makefile --with-openmp --with-vdb=${VDB} --without-gnutls --without-gcrypt --without-zstd --without-lzo --prefix=/blast && \
  cd ReleaseMT/build && \
- make -j ${num_procs} -f Makefile.flat blastdb_aliastool.exe blastdbcheck.exe blastdbcmd.exe blast_formatter.exe blastn.exe blastp.exe blastx.exe convert2blastmask.exe deltablast.exe dustmasker.exe makeblastdb.exe makembindex.exe makeprofiledb.exe psiblast.exe rpsblast.exe rpstblastn.exe segmasker.exe tblastn.exe tblastx.exe windowmasker.exe blastn_vdb.exe tblastn_vdb.exe blast_formatter_vdb.exe blast_vdb_cmd.exe
+ make -j ${num_procs} -f Makefile.flat blastdb_aliastool.exe blastdbcheck.exe blastdbcmd.exe blast_formatter.exe blastn.exe blastp.exe blastx.exe convert2blastmask.exe deltablast.exe dustmasker.exe makeblastdb.exe makembindex.exe makeprofiledb.exe psiblast.exe rpsblast.exe rpstblastn.exe segmasker.exe tblastn.exe tblastx.exe windowmasker.exe blastn_vdb.exe tblastn_vdb.exe blast_formatter_vdb.exe blast_vdb_cmd.exe blastdb_path.exe
 
 FROM google/cloud-sdk:slim as gsutil
 ARG version
@@ -57,8 +57,7 @@ ENV BLASTDB /blast/blastdb:/blast/blastdb_custom
 ENV BLAST_DOCKER true
 ENV PATH="/root/edirect:/blast/bin:${PATH}"
 
-RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/${version}/blastdb_path -o /blast/bin/blastdb_path && chmod +x /blast/bin/blastdb_path && \
-    cp  /blast/bin/blastp /blast/bin/blastp.REAL && \
+RUN cp  /blast/bin/blastp /blast/bin/blastp.REAL && \
     curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/${version}/blastp.sh -o /blast/bin/blastp  && chmod +x /blast/bin/blastp && \
     cp  /blast/bin/blastn /blast/bin/blastn.REAL && \
     curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/temp/${version}/blastn.sh -o /blast/bin/blastn  && chmod +x /blast/bin/blastn && \
