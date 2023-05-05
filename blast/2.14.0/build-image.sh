@@ -2,7 +2,7 @@
 
 DOCKERHUB_USERNAME=${1:-"ncbi"}
 IMAGE=blast
-VERSION=2.14.0
+VERSION=$(cat VERSION)
 # Check the latest ncbi-vdb release version in https://github.com/ncbi/ncbi-vdb/tags
 # To see which VDB version is currently used by C++ Toolkit do:
 #  grep local_vdb_base src/build-system/config.site.ncbi
