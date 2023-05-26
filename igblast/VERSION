@@ -19,6 +19,6 @@ igblastn -query /q/temp.query -germline_db_V /d/human_gl_V -germline_db_D /d/hum
 2.  You can also run the image directly as follows:
 docker run -e IGDATA=/ncbi-igblast-1.21.0 -v $HOME/database:/d -v $HOME/query:/q ncbi/igblast igblastn -query /q/temp.query -germline_db_V /d/human_gl_V -germline_db_D /d/human_gl_D -germline_db_J /d/human_gl_J -show_translation -auxiliary_data optional_file/human_gl.aux -organism human
  
-Note that this image contains only IgBLAST executable for Linux platform.  The IgBLAST documentaton is at https://ncbi.github.io/igblast/
+Note that this image contains only IgBLAST executable for Linux platform.  The IgBLAST documentation is at https://ncbi.github.io/igblast/
 
 [1]: https://pubmed.ncbi.nlm.nih.gov/23671333/
