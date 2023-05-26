@@ -2,7 +2,7 @@
 
 [NCBI IgBLAST][1] command line application in a Docker image.
 
-# Running IgBLAST
+## Running IgBLAST
 
 IgBLAST image can be run following standard docker methods.  Some examples are shown below (assuming your image version is 1.21.0 and work directory 
 has a folder named "database" that has the germline gene databases you want to search and a folder named "query" that has your query sequence file).  
@@ -27,5 +27,13 @@ docker run -e IGDATA=/ncbi-igblast-1.21.0 -v $HOME/database:/d -v $HOME/query:/q
 ```
  
 Note that this image contains only IgBLAST executable for Linux platform.  The IgBLAST documentation is at https://ncbi.github.io/igblast/
+
+## Maintainer's notes
+
+A `Makefile` is provided to conveniently maintain this docker image. In the commands below, the value of `$X` represents the version of NCBI IgBLAST to base this image on.
+
+* `make build VERSION=$X`: builds the docker image
+* `make publish VERSION=$X`: publishes the image to Docker Hub
+* `make check`: performs a sanity check on the most recently built image
 
 [1]: https://pubmed.ncbi.nlm.nih.gov/23671333/
