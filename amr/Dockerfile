@@ -16,13 +16,7 @@ ARG BINARY_URL
 # Install AMRFinderPlus
 WORKDIR /usr/local/bin
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-RUN curl --silent -L ${BINARY_URL} | tar xvfz - \
-    && curl -O https://raw.githubusercontent.com/ncbi/amr/master/test_dna.fa \
-         -O https://raw.githubusercontent.com/ncbi/amr/master/test_prot.fa \
-         -O https://raw.githubusercontent.com/ncbi/amr/master/test_prot.gff \
-         -O https://raw.githubusercontent.com/ncbi/amr/master/test_both.expected \
-         -O https://raw.githubusercontent.com/ncbi/amr/master/test_dna.expected \
-         -O https://raw.githubusercontent.com/ncbi/amr/master/test_prot.expected
+RUN curl --silent -L ${BINARY_URL} | tar xvfz -
 
 ARG DB_VERSION
 
@@ -30,8 +24,7 @@ RUN amrfinder -u
 
 # Test installation
 WORKDIR /usr/local/bin
-RUN amrfinder --plus -n test_dna.fa -p test_prot.fa -g test_prot.gff -O Escherichia > test_both.got \
-    && diff test_both.expected test_both.got
+RUN ./test_amrfinder.sh
 
 WORKDIR /data
 
