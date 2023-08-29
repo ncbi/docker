@@ -1,8 +1,8 @@
-FROM ubuntu:18.04
+FROM ubuntu:22.04
 ARG version
 
 USER root
-RUN apt-get -y -m update && apt-get install -y wget libidn11 libnet-perl liblist-moreutils-perl perl-doc libgomp1 libxml2
+RUN apt-get -y -m update && apt-get install -y wget curl libidn-dev libnet-perl liblist-moreutils-perl perl-doc libgomp1 libxml2
 
 RUN mkdir -p /blast/blastdb /blast/blastdb_custom
 WORKDIR /blast
