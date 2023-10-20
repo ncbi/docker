@@ -7,7 +7,7 @@ VERSION=$(cat VERSION)
 # To see which VDB version is currently used by C++ Toolkit do:
 #  grep local_vdb_base src/build-system/config.site.ncbi
 VDB_VERSION=3.0.1
-NP=`grep -c ^proc /proc/cpuinfo`
+NP=$(grep -c ^proc /proc/cpuinfo)
 
-docker build --build-arg version=${VERSION} --build-arg num_procs=${NP} --build-arg vdb_version=${VDB_VERSION} -t $DOCKERHUB_USERNAME/$IMAGE:$VERSION .
-docker tag $DOCKERHUB_USERNAME/$IMAGE:$VERSION $DOCKERHUB_USERNAME/$IMAGE:latest
+docker build --build-arg version="${VERSION}" --build-arg num_procs="${NP}" --build-arg vdb_version=${VDB_VERSION} -t "$DOCKERHUB_USERNAME"/$IMAGE:"$VERSION" .
+docker tag "$DOCKERHUB_USERNAME"/$IMAGE:"$VERSION" "$DOCKERHUB_USERNAME"/$IMAGE:latest
