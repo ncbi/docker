@@ -8,7 +8,7 @@ LABEL Description="NCBI BLAST" Vendor="NCBI/NLM/NIH" Version=${version} Maintain
 USER root
 WORKDIR /root/
 
-RUN apt-get -y -m update && apt-get install -y build-essential curl libidn11 libnet-perl perl-doc liblmdb-dev wget
+RUN apt-get -y -m update && apt-get install -y build-essential curl libidn12 libnet-perl perl-doc liblmdb-dev wget
 
 # cmake installed by apt is currently too old
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.22.3/cmake-3.22.3-linux-x86_64.tar.gz && tar xfz cmake-3.22.3-linux-x86_64.tar.gz && rm cmake-3.22.3-linux-x86_64.tar.gz
@@ -49,7 +49,7 @@ COPY --from=blastbuild /root/ncbi-blast-${version}+-src/c++/ReleaseMT/bin /blast
 COPY --from=blastbuild /root/ncbi-blast-${version}+-src/c++/ReleaseMT/lib /blast/lib
 COPY --from=blastbuild /root/VDB/linux/release/x86_64/lib /blast/lib
 
-COPY --from=edirect /usr/local/ncbi/edirect /root/edirect
+COPY --from=edirect /home/docker/edirect /root/edirect
 
 RUN mkdir -p /blast/blastdb /blast/blastdb_custom
 RUN sed -i '$ a BLASTDB=/blast/blastdb:/blast/blastdb_custom' /etc/environment
