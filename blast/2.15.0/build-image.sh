@@ -9,5 +9,5 @@ VERSION=$(cat VERSION)
 VDB_VERSION=3.0.8
 NP=$(grep -c ^proc /proc/cpuinfo)
 
-docker build --build-arg version="${VERSION}" --build-arg num_procs="${NP}" --build-arg vdb_version=${VDB_VERSION} -t "$DOCKERHUB_USERNAME"/$IMAGE:"$VERSION" .
+docker build --build-arg blast_version="${VERSION}" --build-arg num_procs="${NP}" --build-arg vdb_version=${VDB_VERSION} -t "$DOCKERHUB_USERNAME"/$IMAGE:"$VERSION" .
 docker tag "$DOCKERHUB_USERNAME"/$IMAGE:"$VERSION" "$DOCKERHUB_USERNAME"/$IMAGE:latest
