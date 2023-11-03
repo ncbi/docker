@@ -20,7 +20,7 @@ time docker run --rm ${IMG} /bin/bash -c "printenv BLASTDB"
 
 time docker run --rm ${IMG} blastn -version
 time docker run --rm ${IMG} blastn_vdb -version-full
-time docker run --rm ${IMG} installconfirm
+time docker run --rm ${IMG} ./installconfirm
 time docker run --rm -v $TMP:/blast/blastdb:rw -w /blast/blastdb ${IMG} efetch -db nucleotide -id u00001 -format fasta | tee $TMP/u00001.fna
 time docker run --rm -v $TMP:/blast/blastdb:rw -w /blast/blastdb ${IMG} makeblastdb -in u00001.fna -dbtype nucl -out test-blastdb -title TEST
 time docker run --rm -v $TMP:/blast/blastdb:rw ${IMG} blastdbcmd -info -db test-blastdb
