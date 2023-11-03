@@ -10,5 +10,5 @@ VERSION=$(cat VERSION)
 VDB_VERSION=3.0.8
 NP=$(grep -c ^proc /proc/cpuinfo)
 
-docker build --progress=plain --build-arg blast_version="${VERSION}" --build-arg num_procs="${NP}" --build-arg vdb_version=${VDB_VERSION} -t "$DOCKERHUB_USERNAME"/$IMAGE:"$VERSION" . 2>&1 | tee build.log
+docker build --progress=plain --build-arg blast_version="${VERSION}" --build-arg num_procs="${NP}" --build-arg vdb_version=${VDB_VERSION} -t "$DOCKERHUB_USERNAME"/$IMAGE:"$VERSION" --pull --no-cache . 2>&1 | tee build.log
 docker tag "$DOCKERHUB_USERNAME"/$IMAGE:"$VERSION" "$DOCKERHUB_USERNAME"/$IMAGE:latest
