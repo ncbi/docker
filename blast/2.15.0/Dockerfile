@@ -50,6 +50,7 @@ RUN curl -sS -H 'Cache-Control: no-cache, no-store' https://ftp.ncbi.nlm.nih.gov
 #RUN ldd --version
 
 COPY --from=edirect /home/docker/edirect /root/edirect
+COPY --from=edirect /home/docker/installconfirm /blast/
 
 RUN mkdir -p /blast/blastdb /blast/blastdb_custom
 RUN sed -i '$ a BLASTDB=/blast/blastdb:/blast/blastdb_custom' /etc/environment
@@ -74,6 +75,9 @@ RUN chmod +x /blast/bin/blastn && chmod +x /blast/bin/blastp && \
     chmod +x /blast/bin/tblastx
 
 RUN curl -sSL https://sdk.cloud.google.com | bash
+ENV PATH="${PATH}:/root/google-cloud-sdk/bin"
+
+RUN rm -fr /root/ncbi-blast-${version}+-src /root/cmake-3.22.3-linux-x86_64
 
 WORKDIR /blast
 
