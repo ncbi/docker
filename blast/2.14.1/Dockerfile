@@ -1,4 +1,4 @@
-FROM ncbi/edirect as edirect
+FROM ncbi/edirect:12.5 as edirect
 FROM ubuntu:18.04 as blastbuild
 ARG blast_version
 ARG vdb_version
