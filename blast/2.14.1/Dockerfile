@@ -1,9 +1,9 @@
 FROM ncbi/edirect as edirect
 FROM ubuntu:18.04 as blastbuild
-ARG version
+ARG blast_version
 ARG vdb_version
 ARG num_procs=8
-LABEL Description="NCBI BLAST" Vendor="NCBI/NLM/NIH" Version=${version} Maintainer=camacho@ncbi.nlm.nih.gov
+LABEL Description="NCBI BLAST" Vendor="NCBI/NLM/NIH" Version=${blast_version} Maintainer=camacho@ncbi.nlm.nih.gov
 
 USER root
 WORKDIR /root/
@@ -28,15 +28,15 @@ RUN mkdir -p ${VDB}/linux/release/x86_64/lib && \
     mkdir -p ${VDB}/interfaces && cp -R /root/vdb/include/* ${VDB}/interfaces
 
 # Build BLAST binaries
-RUN curl -s ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/${version}/ncbi-blast-${version}+-src.tar.gz | \
+RUN curl -sS https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/${blast_version}/ncbi-blast-${blast_version}+-src.tar.gz | \
  tar xzf - && \
- cd ncbi-blast-${version}+-src/c++ && \
+ cd ncbi-blast-${blast_version}+-src/c++ && \
  ./configure --with-mt --with-strip --with-optimization --with-dll --with-experimental=Int8GI --with-flat-makefile --with-openmp --with-vdb=${VDB} --without-gnutls --without-gcrypt --without-zstd --without-lzo --prefix=/blast && \
  cd ReleaseMT/build && \
  make -j ${num_procs} -f Makefile.flat blastdb_aliastool.exe blastdbcheck.exe blastdbcmd.exe blast_formatter.exe blastn.exe blastp.exe blastx.exe convert2blastmask.exe deltablast.exe dustmasker.exe makeblastdb.exe makembindex.exe makeprofiledb.exe psiblast.exe rpsblast.exe rpstblastn.exe segmasker.exe tblastn.exe tblastx.exe windowmasker.exe blastn_vdb.exe tblastn_vdb.exe blast_formatter_vdb.exe blast_vdb_cmd.exe blastdb_path.exe
 
 FROM google/cloud-sdk:slim as gsutil
-ARG version
+ARG blast_version
 COPY VERSION .
 
 USER root
@@ -45,8 +45,8 @@ WORKDIR /root/
 RUN apt-get -y -m update && apt-get install -y libgomp1 libnet-perl libxml-simple-perl libjson-perl perl-doc liblmdb-dev parallel vmtouch cpanminus curl && rm -rf /var/lib/apt/lists/*  && cpanm HTML::Entities
 
 RUN mkdir -p /blast/bin /blast/lib
-COPY --from=blastbuild /root/ncbi-blast-${version}+-src/c++/ReleaseMT/bin /blast/bin
-COPY --from=blastbuild /root/ncbi-blast-${version}+-src/c++/ReleaseMT/lib /blast/lib
+COPY --from=blastbuild /root/ncbi-blast-${blast_version}+-src/c++/ReleaseMT/bin /blast/bin
+COPY --from=blastbuild /root/ncbi-blast-${blast_version}+-src/c++/ReleaseMT/lib /blast/lib
 COPY --from=blastbuild /root/VDB/linux/release/x86_64/lib /blast/lib
 
 COPY --from=edirect /usr/local/ncbi/edirect /root/edirect
