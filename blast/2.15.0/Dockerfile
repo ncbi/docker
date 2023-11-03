@@ -1,5 +1,5 @@
 FROM ncbi/edirect as edirect
-FROM ubuntu:22.04 as blastbuild
+FROM ubuntu:22.04
 ARG blast_version
 ARG vdb_version
 ARG num_procs=8
@@ -7,8 +7,12 @@ LABEL Description="NCBI BLAST" Vendor="NCBI/NLM/NIH" Version=${blast_version} Ma
 
 USER root
 WORKDIR /root/
+RUN mkdir -p /blast/bin /blast/lib
 
-RUN apt-get -y -m update && apt-get install -y build-essential curl libidn12 libnet-perl perl-doc liblmdb-dev wget libsqlite3-dev
+RUN apt-get -y -m update && apt-get install -y build-essential curl libidn12 libnet-perl perl-doc liblmdb-dev wget libsqlite3-dev \
+    libgomp1 libxml-simple-perl libjson-perl parallel vmtouch cpanminus && \
+    rm -fr /var/lib/apt/lists/*  && \
+    cpanm HTML::Entities
 
 # cmake installed by apt is currently too old
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.22.3/cmake-3.22.3-linux-x86_64.tar.gz && tar xfz cmake-3.22.3-linux-x86_64.tar.gz && rm cmake-3.22.3-linux-x86_64.tar.gz
@@ -20,34 +24,30 @@ RUN wget https://github.com/ncbi/ncbi-vdb/archive/refs/tags/${vdb_version}.tar.g
     mv ncbi-vdb-${vdb_version} ncbi-vdb && \
     cd ncbi-vdb && ./configure --prefix /root/vdb && make install -j ${num_proc}
 
+# For debugging
+#RUN ldd --version
+
 # Arrange ncbi-vdb libraries and header files in a form that C++ toolkit
 # build can consume them.
 ARG VDB=/root/VDB
 RUN mkdir -p ${VDB}/linux/release/x86_64/lib && \
     cp -R /root/vdb/lib64/* ${VDB}/linux/release/x86_64/lib && \
+    cp -R /root/vdb/lib64/* /blast/lib/ && \
     mkdir -p ${VDB}/interfaces && cp -R /root/vdb/include/* ${VDB}/interfaces
 
 # Build BLAST binaries
-RUN curl -s -H 'Cache-Control: no-cache, no-store' https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/${blast_version}/ncbi-blast-${blast_version}+-src.tar.gz | \
+RUN curl -sS -H 'Cache-Control: no-cache, no-store' https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/${blast_version}/ncbi-blast-${blast_version}+-src.tar.gz | \
  tar xvzf - && \
  cd ncbi-blast-${blast_version}+-src/c++ && \
  ./configure --with-mt --with-strip --with-optimization --with-dll --with-experimental=Int8GI --with-flat-makefile --with-openmp --with-sqlite3 --with-vdb=${VDB} --without-gnutls --without-gcrypt --without-zstd --without-lzo --prefix=/blast && \
  cd ReleaseMT/build && \
- make -j ${num_procs} -f Makefile.flat blastdb_aliastool.exe blastdbcheck.exe blastdbcmd.exe blast_formatter.exe blastn.exe blastp.exe blastx.exe convert2blastmask.exe deltablast.exe dustmasker.exe makeblastdb.exe makembindex.exe makeprofiledb.exe psiblast.exe rpsblast.exe rpstblastn.exe segmasker.exe tblastn.exe tblastx.exe windowmasker.exe blastn_vdb.exe tblastn_vdb.exe blast_formatter_vdb.exe blast_vdb_cmd.exe blastdb_path.exe
+ make -j ${num_procs} -f Makefile.flat blastdb_aliastool.exe blastdbcheck.exe blastdbcmd.exe blast_formatter.exe blastn.exe blastp.exe blastx.exe convert2blastmask.exe deltablast.exe dustmasker.exe makeblastdb.exe makembindex.exe makeprofiledb.exe psiblast.exe rpsblast.exe rpstblastn.exe segmasker.exe tblastn.exe tblastx.exe windowmasker.exe blastn_vdb.exe tblastn_vdb.exe blast_formatter_vdb.exe blast_vdb_cmd.exe blastdb_path.exe && \
+ find /root/ncbi-blast-${blast_version}+-src/c++/ReleaseMT && \
+ cp -pv /root/ncbi-blast-${blast_version}+-src/c++/ReleaseMT/bin/* /blast/bin/ && \
+ cp -pv /root/ncbi-blast-${blast_version}+-src/c++/ReleaseMT/lib/* /blast/lib/ 
 
-FROM google/cloud-sdk:slim as gsutil
-ARG blast_version
-COPY VERSION .
-
-USER root
-WORKDIR /root/
-
-RUN apt-get -y -m update && apt-get install -y libgomp1 libnet-perl libxml-simple-perl libjson-perl perl-doc liblmdb-dev parallel vmtouch cpanminus curl && rm -rf /var/lib/apt/lists/*  && cpanm HTML::Entities
-
-RUN mkdir -p /blast/bin /blast/lib
-COPY --from=blastbuild /root/ncbi-blast-${blast_version}+-src/c++/ReleaseMT/bin /blast/bin
-COPY --from=blastbuild /root/ncbi-blast-${blast_version}+-src/c++/ReleaseMT/lib /blast/lib
-COPY --from=blastbuild /root/VDB/linux/release/x86_64/lib /blast/lib
+# For debugging
+#RUN ldd --version
 
 COPY --from=edirect /home/docker/edirect /root/edirect
 
@@ -73,6 +73,7 @@ RUN chmod +x /blast/bin/blastn && chmod +x /blast/bin/blastp && \
     chmod +x /blast/bin/blastx && chmod +x /blast/bin/tblastn && \
     chmod +x /blast/bin/tblastx
 
+RUN curl -sSL https://sdk.cloud.google.com | bash
 
 WORKDIR /blast
 
