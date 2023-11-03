@@ -2,7 +2,7 @@
 
 DOCKERHUB_USERNAME=${1:-"ncbi"}
 IMAGE=blast-static
-VERSION=${2:-$(curl https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/VERSION)}
+VERSION=${2:-$(curl -sSL https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/VERSION)}
 
 docker manifest create "$DOCKERHUB_USERNAME"/$IMAGE:"$VERSION" \
 	--amend "$DOCKERHUB_USERNAME"/$IMAGE:"${VERSION}"-amd64 \
