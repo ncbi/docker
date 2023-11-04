@@ -9,14 +9,10 @@ USER root
 WORKDIR /root/
 RUN mkdir -p /blast/bin /blast/lib
 
-RUN apt-get -y -m update && apt-get install -y build-essential curl libidn12 libnet-perl perl-doc liblmdb-dev wget libsqlite3-dev \
+RUN apt-get -y -m update && apt-get install -y build-essential curl libidn12 libnet-perl perl-doc liblmdb-dev wget libsqlite3-dev cmake \
     libgomp1 libxml-simple-perl libjson-perl parallel vmtouch cpanminus && \
     rm -fr /var/lib/apt/lists/*  && \
     cpanm HTML::Entities
-
-# cmake installed by apt is currently too old
-RUN wget https://github.com/Kitware/CMake/releases/download/v3.22.3/cmake-3.22.3-linux-x86_64.tar.gz && tar xfz cmake-3.22.3-linux-x86_64.tar.gz && rm cmake-3.22.3-linux-x86_64.tar.gz
-ENV PATH="${PATH}:/root/cmake-3.22.3-linux-x86_64/bin"
 
 # Download and build ncbi-vdb
 RUN wget https://github.com/ncbi/ncbi-vdb/archive/refs/tags/${vdb_version}.tar.gz && \
@@ -50,7 +46,7 @@ RUN curl -sS -H 'Cache-Control: no-cache, no-store' https://ftp.ncbi.nlm.nih.gov
 #RUN ldd --version
 
 COPY --from=edirect /home/docker/edirect /root/edirect
-COPY --from=edirect /home/docker/installconfirm /blast/
+COPY --from=edirect /home/docker/installconfirm /root/edirect
 
 RUN mkdir -p /blast/blastdb /blast/blastdb_custom
 RUN sed -i '$ a BLASTDB=/blast/blastdb:/blast/blastdb_custom' /etc/environment
@@ -77,7 +73,7 @@ RUN chmod +x /blast/bin/blastn && chmod +x /blast/bin/blastp && \
 RUN curl -sSL https://sdk.cloud.google.com | bash
 ENV PATH="${PATH}:/root/google-cloud-sdk/bin"
 
-RUN rm -fr /root/ncbi-blast-${version}+-src /root/cmake-3.22.3-linux-x86_64
+RUN rm -fr /root/ncbi-blast-${version}+-src
 
 WORKDIR /blast
 
