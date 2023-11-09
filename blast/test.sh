@@ -30,11 +30,9 @@ NUM_LINES=`wc -l $TMP/blastn.out | cut -f 1 -d ' '`
 
 time docker run --rm ${IMG} gsutil --version
 
-time docker run --rm -v $TMP:/blast/blastdb:rw -w /blast/blastdb ${IMG} update_blastdb.pl --decompress --passive $DB
-time docker run --rm -v $TMP:/blast/blastdb:rw -w /blast/blastdb ${IMG} update_blastdb.pl --decompress $DB
-time docker run --rm -v $TMP:/blast/blastdb:rw -w /blast/blastdb ${IMG} update_blastdb.pl --decompress --source gcp $DB
-time docker run --rm -v $TMP:/blast/blastdb:rw -w /blast/blastdb ${IMG} update_blastdb.pl --decompress --passive --source gcp $DB
-time docker run --rm -v $TMP:/blast/blastdb:rw -w /blast/blastdb ${IMG} update_blastdb.pl --decompress --passive --source gcp $DB
+time docker run --rm -v $TMP:/blast/blastdb:rw -w /blast/blastdb ${IMG} update_blastdb.pl --decompress --source ncbi $DB
+time docker run --rm -v $TMP:/blast/blastdb:rw -w /blast/blastdb ${IMG} update_blastdb.pl --decompress --source gcp  $DB
+time docker run --rm -v $TMP:/blast/blastdb:rw -w /blast/blastdb ${IMG} update_blastdb.pl --decompress --source aws  $DB
 ls -l $TMP
 
 time docker run --rm ${IMG} get_species_taxids.sh -n squirrel

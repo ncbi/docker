@@ -1,1 +1,4 @@
 typescript
+*.log
+*.swp
+*~

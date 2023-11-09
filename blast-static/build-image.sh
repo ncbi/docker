@@ -1,8 +1,9 @@
-#!/bin/bash
+#!/bin/bash 
+set -xeuo pipefail
 
-USERNAME=${1:-"ncbi"}
+DOCKERHUB_USERNAME=${1:-"ncbi"}
 IMAGE=blast-static
-VERSION=`curl https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/VERSION`
+VERSION=$(curl -sSL https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/VERSION)
 
 case $(uname -m) in
 	x86_64) ARCH=amd64;;
@@ -10,6 +11,6 @@ case $(uname -m) in
 esac
 
 
-docker build --build-arg version=${VERSION} -t $USERNAME/$IMAGE:$VERSION .
-docker tag $USERNAME/$IMAGE:$VERSION $USERNAME/$IMAGE:latest
-docker tag $USERNAME/$IMAGE:$VERSION $USERNAME/$IMAGE:${VERSION}-${ARCH}
+docker build --progress=plain --build-arg version="${VERSION}" -t "$DOCKERHUB_USERNAME"/$IMAGE:"$VERSION" --pull --no-cache . 2>&1 | tee build.log
+docker tag "$DOCKERHUB_USERNAME"/$IMAGE:"$VERSION" "$DOCKERHUB_USERNAME"/$IMAGE:latest
+docker tag "$DOCKERHUB_USERNAME"/$IMAGE:"$VERSION" "$DOCKERHUB_USERNAME"/$IMAGE:"${VERSION}"-${ARCH}
