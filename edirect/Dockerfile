@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:20.04
 
 ARG version
 ARG username=docker
@@ -9,6 +9,9 @@ LABEL Vendor="NCBI/NLM/NIH"
 LABEL Version=${version}
 LABEL Maintainer=camacho@ncbi.nlm.nih.gov
 
+# needed to for tzdata package
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
 RUN apt-get -y -m update && \
     apt-get install -y curl libxml-simple-perl libwww-perl libnet-perl build-essential && \
     rm -rf /var/lib/apt/lists/*

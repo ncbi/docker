@@ -1,5 +1,5 @@
 FROM ncbi/edirect:20.6 as edirect
-FROM ubuntu:22.04
+FROM ubuntu:20.04
 ARG blast_version
 ARG vdb_version
 ARG num_procs=8
@@ -9,7 +9,10 @@ USER root
 WORKDIR /root/
 RUN mkdir -p /blast/bin /blast/lib
 
-RUN apt-get -y -m update && apt-get install -y build-essential curl libidn12 libnet-perl perl-doc liblmdb-dev wget libsqlite3-dev cmake \
+# needed to for tzdata package
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
+RUN apt-get -y -m update && apt-get install -y build-essential curl libidn11 libnet-perl perl-doc liblmdb-dev wget libsqlite3-dev cmake python3.9 \
     libgomp1 libxml-simple-perl libjson-perl parallel vmtouch cpanminus && \
     rm -fr /var/lib/apt/lists/*  && \
     cpanm HTML::Entities
