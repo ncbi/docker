@@ -39,7 +39,8 @@ COPY VERSION .
 USER root
 WORKDIR /root/
 
-RUN apt-get -y -m update && apt-get install -y libxml2-dev libgomp1 && rm -rf /var/lib/apt/lists/*
+RUN apt-get -y -m update && apt-get install -y libxml2-dev libgomp1 ca-certificates && \
+   rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /blast/bin /blast/lib
 
