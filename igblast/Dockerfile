@@ -1,5 +1,5 @@
 FROM ubuntu:18.04
-ARG version=1.21.0
+ARG version=1.22.0
 LABEL Description="NCBI IgBLAST" Vendor="NCBI/NLM/NIH" Version=${version} Maintainer=jianye@ncbi.nlm.nih.gov
 
 USER root
