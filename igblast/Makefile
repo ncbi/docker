@@ -3,7 +3,7 @@ SHELL=/bin/bash
 
 USERNAME?=ncbi
 IMG=igblast
-VERSION?=1.21.0
+VERSION?=1.22.0
 
 build:
 	docker build --build-arg version=${VERSION} -t ${USERNAME}/${IMG}:${VERSION} .
