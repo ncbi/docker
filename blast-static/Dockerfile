@@ -2,7 +2,7 @@ FROM ubuntu:22.04
 ARG version
 
 USER root
-RUN apt-get -y -m update && apt-get install -y wget curl libidn-dev libnet-perl liblist-moreutils-perl perl-doc libgomp1 libxml2
+RUN apt-get -y -m update && apt-get install -y wget curl libidn-dev libnet-perl liblist-moreutils-perl perl-doc libgomp1 libxml2 libsqlite3-dev
 
 RUN mkdir -p /blast/blastdb /blast/blastdb_custom
 WORKDIR /blast
