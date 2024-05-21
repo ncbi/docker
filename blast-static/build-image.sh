@@ -11,6 +11,6 @@ case $(uname -m) in
 esac
 
 
-docker build --progress=plain --build-arg version="${VERSION}" -t "$DOCKERHUB_USERNAME"/$IMAGE:"$VERSION" --pull --no-cache . 2>&1 | tee build.log
+docker build --build-arg version="${VERSION}" -t "$DOCKERHUB_USERNAME"/$IMAGE:"$VERSION" --pull --no-cache . 2>&1 | tee build.log
 docker tag "$DOCKERHUB_USERNAME"/$IMAGE:"$VERSION" "$DOCKERHUB_USERNAME"/$IMAGE:latest
 docker tag "$DOCKERHUB_USERNAME"/$IMAGE:"$VERSION" "$DOCKERHUB_USERNAME"/$IMAGE:"${VERSION}"-${ARCH}
