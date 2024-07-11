@@ -12,13 +12,14 @@ RUN mkdir -p /blast/bin /blast/lib
 RUN apt-get -y -m update && apt-get install -y build-essential curl libidn12 libnet-perl perl-doc liblmdb-dev wget libsqlite3-dev cmake \
     libgomp1 libxml-simple-perl libjson-perl parallel vmtouch cpanminus && \
     rm -fr /var/lib/apt/lists/*  && \
-    cpanm HTML::Entities
+    cpanm HTML::Entities && rm -fr .cpanm
 
 # Download and build ncbi-vdb
 RUN wget https://github.com/ncbi/ncbi-vdb/archive/refs/tags/${vdb_version}.tar.gz && \
     tar xfz ${vdb_version}.tar.gz && rm ${vdb_version}.tar.gz && \
     mv ncbi-vdb-${vdb_version} ncbi-vdb && \
-    cd ncbi-vdb && ./configure --prefix /root/vdb && make install -j ${num_proc}
+    cd ncbi-vdb && ./configure --prefix /root/vdb && make install -j ${num_proc} && \
+    rm -fr ncbi-outdir
 
 # For debugging
 #RUN ldd --version
@@ -39,8 +40,12 @@ RUN curl -sS -H 'Cache-Control: no-cache, no-store' https://ftp.ncbi.nlm.nih.gov
  cd ReleaseMT/build && \
  make -j ${num_procs} -f Makefile.flat blastdb_aliastool.exe blastdbcheck.exe blastdbcmd.exe blast_formatter.exe blastn.exe blastp.exe blastx.exe convert2blastmask.exe deltablast.exe dustmasker.exe makeblastdb.exe makembindex.exe makeprofiledb.exe psiblast.exe rpsblast.exe rpstblastn.exe segmasker.exe tblastn.exe tblastx.exe windowmasker.exe blastn_vdb.exe tblastn_vdb.exe blast_formatter_vdb.exe blast_vdb_cmd.exe blastdb_path.exe && \
  find /root/ncbi-blast-${blast_version}+-src/c++/ReleaseMT && \
- cp -pv /root/ncbi-blast-${blast_version}+-src/c++/ReleaseMT/bin/* /blast/bin/ && \
- cp -pv /root/ncbi-blast-${blast_version}+-src/c++/ReleaseMT/lib/* /blast/lib/ 
+ cp -pv /root/ncbi-blast-${blast_version}+-src/c++/ReleaseMT/bin/*blast* /blast/bin/ && \
+ cp -pv /root/ncbi-blast-${blast_version}+-src/c++/ReleaseMT/bin/*masker /blast/bin/ && \
+ cp -pv /root/ncbi-blast-${blast_version}+-src/c++/ReleaseMT/bin/makembindex /blast/bin/ && \
+ cp -pv /root/ncbi-blast-${blast_version}+-src/c++/ReleaseMT/bin/makeprofiledb /blast/bin/ && \
+ cp -pv /root/ncbi-blast-${blast_version}+-src/c++/ReleaseMT/lib/* /blast/lib/  && \
+ rm -fr /root/ncbi-blast-${version}+-src /root/ncbi-outdir
 
 # For debugging
 #RUN ldd --version
@@ -72,8 +77,6 @@ RUN chmod +x /blast/bin/blastn && chmod +x /blast/bin/blastp && \
 
 RUN curl -sSL https://sdk.cloud.google.com | bash
 ENV PATH="${PATH}:/root/google-cloud-sdk/bin"
-
-RUN rm -fr /root/ncbi-blast-${version}+-src
 
 WORKDIR /blast
 
