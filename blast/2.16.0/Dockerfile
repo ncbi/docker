@@ -15,7 +15,7 @@ RUN apt-get -y -m update && apt-get install -y build-essential curl libidn12 lib
     cpanm HTML::Entities && rm -fr .cpanm
 
 # Download and build ncbi-vdb
-RUN wget https://github.com/ncbi/ncbi-vdb/archive/refs/tags/${vdb_version}.tar.gz && \
+RUN wget -q https://github.com/ncbi/ncbi-vdb/archive/refs/tags/${vdb_version}.tar.gz && \
     tar xfz ${vdb_version}.tar.gz && rm ${vdb_version}.tar.gz && \
     mv ncbi-vdb-${vdb_version} ncbi-vdb && \
     cd ncbi-vdb && ./configure --prefix /root/vdb && make install -j ${num_proc} && \
@@ -34,7 +34,7 @@ RUN mkdir -p ${VDB}/linux/release/x86_64/lib && \
 
 # Build BLAST binaries
 RUN curl -sS -H 'Cache-Control: no-cache, no-store' https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/${blast_version}/ncbi-blast-${blast_version}+-src.tar.gz | \
- tar xvzf - && \
+ tar xzf - && \
  cd ncbi-blast-${blast_version}+-src/c++ && \
  ./configure --with-mt --with-strip --with-optimization --with-dll --with-experimental=Int8GI --with-flat-makefile --with-openmp --with-sqlite3 --with-vdb=${VDB} --without-gnutls --without-gcrypt --without-zstd --without-lzo --prefix=/blast && \
  cd ReleaseMT/build && \
@@ -45,7 +45,7 @@ RUN curl -sS -H 'Cache-Control: no-cache, no-store' https://ftp.ncbi.nlm.nih.gov
  cp -pv /root/ncbi-blast-${blast_version}+-src/c++/ReleaseMT/bin/makembindex /blast/bin/ && \
  cp -pv /root/ncbi-blast-${blast_version}+-src/c++/ReleaseMT/bin/makeprofiledb /blast/bin/ && \
  cp -pv /root/ncbi-blast-${blast_version}+-src/c++/ReleaseMT/lib/* /blast/lib/  && \
- rm -fr /root/ncbi-blast-${version}+-src /root/ncbi-outdir
+ rm -fr /root/ncbi-blast-${blast_version}+-src /root/ncbi-outdir
 
 # For debugging
 #RUN ldd --version
