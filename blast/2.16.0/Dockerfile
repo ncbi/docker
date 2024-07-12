@@ -3,6 +3,7 @@ FROM ubuntu:22.04
 ARG blast_version
 ARG vdb_version
 ARG num_procs=8
+ARG CLOUD_SDK_VERSION=472.0.0
 LABEL Description="NCBI BLAST" Vendor="NCBI/NLM/NIH" Version=${blast_version} Maintainer=camacho@ncbi.nlm.nih.gov
 
 USER root
@@ -10,7 +11,7 @@ WORKDIR /root/
 RUN mkdir -p /blast/bin /blast/lib
 
 RUN apt-get -y -m update && apt-get install -y build-essential curl libidn12 libnet-perl perl-doc liblmdb-dev wget libsqlite3-dev cmake \
-    libgomp1 libxml-simple-perl libjson-perl parallel vmtouch cpanminus && \
+    libgomp1 libxml-simple-perl libjson-perl parallel vmtouch cpanminus python3 python3-openssl && \
     rm -fr /var/lib/apt/lists/*  && \
     cpanm HTML::Entities && rm -fr .cpanm
 
@@ -75,8 +76,28 @@ RUN chmod +x /blast/bin/blastn && chmod +x /blast/bin/blastp && \
     chmod +x /blast/bin/blastx && chmod +x /blast/bin/tblastn && \
     chmod +x /blast/bin/tblastx
 
-RUN curl -sSL https://sdk.cloud.google.com | bash
-ENV PATH="${PATH}:/root/google-cloud-sdk/bin"
+ENV CLOUD_SDK_VERSION=$CLOUD_SDK_VERSION
+ENV PATH /root/google-cloud-sdk/bin:$PATH
+ENV CLOUDSDK_PYTHON=/usr/bin/python3
+RUN ARCH=x86_64 && \
+    curl -s -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${CLOUD_SDK_VERSION}-linux-${ARCH}.tar.gz && \
+    tar xzf google-cloud-cli-${CLOUD_SDK_VERSION}-linux-${ARCH}.tar.gz && \
+    rm google-cloud-cli-${CLOUD_SDK_VERSION}-linux-${ARCH}.tar.gz && \
+    rm -rf google-cloud-sdk/platform/bundledpythonunix && \
+    gcloud components remove -q bq && \
+    rm -fr $(find google-cloud-sdk/ -regex ".*/__pycache__") && \
+    rm -rf google-cloud-sdk/.install/.backup && \
+    rm -fr google-cloud-sdk/bin/anthoscli && \
+	rm -fr google-cloud-sdk/lib/third_party/{botocore,kubernetes} && \
+	rm -fr google-cloud-sdk/lib/googlecloudsdk/generated_clients/apis/compute/{alpha,beta} && \
+	rm -fr google-cloud-sdk/lib/googlecloudsdk/generated_clients/apis/{healthcare,gkehub,cloudbuild,containeranalysis,dialogflow,aiplatform} && \
+	rm -fr google-cloud-sdk/lib/surface && \
+	rm -fr $(find google-cloud-sdk/ -name doc -o -name docs) && \
+	gsutil --version && \
+	gsutil ls gs://blast-db
+ENV PATH /root/google-cloud-sdk/bin:$PATH
+ENV CLOUDSDK_PYTHON=/usr/bin/python3
+
 
 WORKDIR /blast
 
