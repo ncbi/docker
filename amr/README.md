@@ -1,11 +1,11 @@
 Docker image creation for NCBI's AMRFinderPlus
 ================================================
 
+[![Latest DockerHub version](https://img.shields.io/docker/v/ncbi/amr/latest?label=docker%20hub)](https://hub.docker.com/r/ncbi/amr) contains both software and database.
+
 The [AMRFinderPlus](https://github.com/ncbi/amr/wiki) software and the accompanying database are designed to find acquired antimicrobial resistance genes and point mutations in protein and/or assembled nucleotide sequences. We have also added "plus" stress, heat, and biocide resistance and virulence factors for [some organisms](https://github.com/evolarjun/amr/wiki/Curated-organisms).
 
 See [the AMRFinderPlus wiki](https://github.com/ncbi/amr/wiki) for documentation of the software and database.
-
-Note that this image contains both software and database.
 
 Building 
 ---------
@@ -22,7 +22,7 @@ docker run --rm -v ${PWD}:/data ncbi/amr \
 
 ### Update the database then run AMRFinderPlus
 
-Note that this image contains both software and database. It is updated with
+Note that this image contains both software and database. It is updated at dockerhub with
 every software and database release, so if your docker image is up-to-date then
 you shouldn't need to update the database to get the latest results.
 
