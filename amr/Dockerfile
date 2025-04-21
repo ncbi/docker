@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM ubuntu:22.04
 
 LABEL maintainer="Arjun Prasad <aprasad@ncbi.nlm.nih.gov>"
 
