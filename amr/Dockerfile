@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:22.04 AS builder
 
 LABEL maintainer="Arjun Prasad <aprasad@ncbi.nlm.nih.gov>"
 
@@ -7,24 +7,57 @@ ARG VERSION
 USER root
 
 # basic setup
-RUN apt-get update && apt-get install -y hmmer ncbi-blast+ libcurl4-openssl-dev curl
+# RUN apt-get update && apt-get install -y hmmer ncbi-blast+ libcurl4-openssl-dev curl
+# Set up to compile
+RUN apt-get update && apt-get install -y hmmer ncbi-blast+ git libcurl4-openssl-dev build-essential
 
 ARG SOFTWARE_VERSION
 
 ARG BINARY_URL
 
 # Install AMRFinderPlus
-WORKDIR /usr/local/bin
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-RUN curl --silent -L ${BINARY_URL} | tar xvfz -
+# WORKDIR /usr/local/bin
+# SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+# RUN curl --silent -L ${BINARY_URL} | tar xvfz -
+# Compile AMRFinderPlus -- Requires Set up to compile above
+RUN git clone https://github.com/ncbi/amr.git \
+        && cd amr \
+        && git submodule update --init \
+        && make -j -O \
+        && make install INSTALL_DIR=/amrfinder
+
+# Now make image for software 
+FROM ubuntu:22.04
+
+RUN apt-get update && apt-get install -y hmmer ncbi-blast+ libcurl4-openssl-dev curl
+
+COPY --from=builder /amrfinder/ /usr/local/bin
 
 ARG DB_VERSION
 
 RUN amrfinder -u
 
+WORKDIR /amrfinder
+
+# now test
+RUN BASE_URL=https://raw.githubusercontent.com/ncbi/amr/master \
+    && curl --silent -L \
+       -O ${BASE_URL}/test_dna.fa \
+       -O ${BASE_URL}/test_prot.fa \
+       -O ${BASE_URL}/test_prot.gff \
+       -O ${BASE_URL}/test_both.expected \
+       -O ${BASE_URL}/test_dna.expected \
+       -O ${BASE_URL}/test_dna_mut_all.expected \
+       -O ${BASE_URL}/test_prot.expected \
+       -O ${BASE_URL}/test_amrfinder.sh \
+        && pwd \
+        && ls -al \
+        && chmod a+x test_amrfinder.sh \
+        && ./test_amrfinder.sh -p
+
 # Test installation
-WORKDIR /usr/local/bin
-RUN ./test_amrfinder.sh
+# WORKDIR /amrfinder
+#RUN ./test_amrfinder.sh -p
 
 WORKDIR /data
 
