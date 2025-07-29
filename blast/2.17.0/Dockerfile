@@ -19,7 +19,7 @@ RUN apt-get -y -m update && apt-get install -y build-essential curl libidn12 lib
 RUN wget -q https://github.com/ncbi/ncbi-vdb/archive/refs/tags/${vdb_version}.tar.gz && \
     tar xfz ${vdb_version}.tar.gz && rm ${vdb_version}.tar.gz && \
     mv ncbi-vdb-${vdb_version} ncbi-vdb && \
-    cd ncbi-vdb && ./configure --prefix /root/vdb && make install -j ${num_proc} && \
+    cd ncbi-vdb && ./configure --prefix /root/vdb && make install -j ${num_procs} && \
     rm -fr ncbi-outdir
 
 # For debugging
