@@ -49,6 +49,8 @@ RUN BASE_URL=https://raw.githubusercontent.com/ncbi/amr/master \
        -O ${BASE_URL}/test_dna.expected \
        -O ${BASE_URL}/test_dna_mut_all.expected \
        -O ${BASE_URL}/test_prot.expected \
+       -O ${BASE_URL}/test_disrupt.fa \
+       -O ${BASE_URL}/test_disrupt.expected \
        -O ${BASE_URL}/test_amrfinder.sh \
         && pwd \
         && ls -al \
