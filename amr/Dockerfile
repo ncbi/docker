@@ -41,17 +41,7 @@ WORKDIR /amrfinder
 
 # now test
 RUN BASE_URL=https://raw.githubusercontent.com/ncbi/amr/master \
-    && curl --silent -L \
-       -O ${BASE_URL}/test_dna.fa \
-       -O ${BASE_URL}/test_prot.fa \
-       -O ${BASE_URL}/test_prot.gff \
-       -O ${BASE_URL}/test_both.expected \
-       -O ${BASE_URL}/test_dna.expected \
-       -O ${BASE_URL}/test_dna_mut_all.expected \
-       -O ${BASE_URL}/test_prot.expected \
-       -O ${BASE_URL}/test_disrupt.fa \
-       -O ${BASE_URL}/test_disrupt.expected \
-       -O ${BASE_URL}/test_amrfinder.sh \
+    && curl --silent -L -O ${BASE_URL}/test_amrfinder.sh \
         && pwd \
         && ls -al \
         && chmod a+x test_amrfinder.sh \
